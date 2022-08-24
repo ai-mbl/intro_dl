@@ -5,7 +5,7 @@
 Create a `conda` environment for this exercise and activate it:
 
 ```
-conda create -n 02_intro_dl python
+conda create -n 02_intro_dl python=3.9
 conda activate 02_intro_dl
 ```
 Install the following packages
