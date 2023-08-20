@@ -2,22 +2,16 @@
 
 ## Setup
 
-Create a `conda` environment for this exercise and activate it:
+Please run the setup script to create the environment for this exercise.
 
-```
-conda create -n 02_intro_dl python=3.9
-conda activate 02_intro_dl
-```
-Install the following packages
-
-```
-conda install tensorflow tensorflow-gpu keras matplotlib jupyter
+```bash
+source setup.sh
 ```
 
-Start Jupyter within this environment:
-
-```
-jupyter notebook
+When you are ready to start the exercise, make sure you activate the installed environment and then run `jupyter lab`.
+```bash
+mamba activate 02_intro_dl
+jupyter lab
 ```
 
 ...and continue with the instructions in the notebook.
