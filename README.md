@@ -26,4 +26,4 @@ jupyter lab
         4.2 Train the network
 
 ## TODO
-[ ] Update setup script for new deps
+- [ ] Update setup script for new deps
