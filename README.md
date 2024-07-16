@@ -18,7 +18,7 @@ jupyter lab
 ## Tasks
     1. Implement a perceptron function
     2. Create a 2 layer network for XOR
-    3. Use keras to train a simple network
+    3. Use pytorch to train a simple network
         3.1 Improve the baseline model
         3.2 Visualize your model
     4. Classify handwritten digits
