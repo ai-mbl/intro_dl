@@ -24,3 +24,6 @@ jupyter lab
     4. Classify handwritten digits
         4.1 Implement a convolutional neural network
         4.2 Train the network
+
+## TODO
+[ ] Update setup script for new deps
