@@ -176,7 +176,7 @@ def xor(x):
 
 # %% tags=["solution"]
 def xor(x):
-    """Solution"""
+    # SOLUTION
     w11 = [0.1, 0.1]
     b11 = -0.05
     w12 = [0.1, 0.1]
@@ -422,12 +422,12 @@ Now, try to find a more advanced architecture that is able to solve the classifi
 class GoodModel(nn.Module):
     def __init__(self):
         super().__init__()
-        self.seq = nn.Sequential(
+        self.mlp = nn.Sequential(
             # Add your layers and activation functions here
         )
 
     def forward(self, x):
-        return self.seq(x)
+        return self.mlp(x)
 
 
 # Initialize the model
@@ -464,11 +464,10 @@ plot_points(
 
 # %% tags=["solution"]
 class GoodModel(nn.Module):
-    """Solution"""
-
     def __init__(self):
         super().__init__()
         self.seq = nn.Sequential(
+            # SOLUTION
             nn.Linear(in_features=2, out_features=64, bias=True),
             nn.ReLU(),
             nn.Linear(in_features=64, out_features=64, bias=True),
@@ -906,7 +905,8 @@ Instantiate and fit your `cnn_model` similar to how we compiled the spiral class
 * set a batch size of 128 samples
 * train for 10 epochs
 """
-# %% tags=["solution"]
+
+# %% tags=["task"]
 cnn_model = CNNModel()
 cnn_model.to(device)
 
