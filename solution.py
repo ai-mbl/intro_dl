@@ -20,10 +20,6 @@ In the following exercise we explore the basic building blocks of deep learning:
 ### Acknowledgements
 
 This notebook was created by Albert Dominguez Mantes, Nils Eckstein, Julia Buhmann, and Jan Funke.
-
-<div class="alert alert-danger">
-Set your python kernel to <code>02_intro_dl</code>
-</div>
 """
 
 # %%
@@ -57,7 +53,7 @@ Test your perceptron function on 2D inputs (i.e., `n=2`) and plot the result. Ch
 """
 
 
-# %%
+# %% tags=["task"]
 def non_linearity(a):
     """Implement your non-linear function here."""
     return
@@ -68,7 +64,7 @@ def non_linearity(a):
     return a > 0
 
 
-# %%
+# %% tags=["task"]
 def perceptron(x, w, b, f):
     """Implement your perceptron here."""
     return
@@ -107,6 +103,8 @@ plot_perceptron(w=[1.0, -1.0], b=-0.1, f=non_linearity)
 <h2> Checkpoint 1 </h2>
 
 We will go over different ways to implement the perceptron together and discuss their efficiency. If you arrived here earlier, feel free to play around with the parameters of the perceptron (the weights and bias) as well as the activation function `f`.
+
+Time: 20 working, + 10 discussion
 </div>
 """
 
@@ -178,6 +176,7 @@ def xor(x):
 
 # %% tags=["solution"]
 def xor(x):
+    """Solution"""
     w11 = [0.1, 0.1]
     b11 = -0.05
     w12 = [0.1, 0.1]
@@ -218,6 +217,7 @@ There are many ways to implement an XOR in a two-layer perceptron. We will revie
 <br/>
 If you arrive here early, think about how to generalize the XOR function to an arbitrary number of inputs. For more than two inputs, the XOR returns True if the number of 1s in the inputs is odd, and False otherwise.
 
+Time: 30 working + 15 min discussion
 </div>
 """
 # %% [markdown]
@@ -285,14 +285,17 @@ import torch
 
 def batch_generator(X, y, batch_size, shuffle=True):
     if shuffle:
+        # Shuffle the data at each epoch
         indices = np.random.permutation(len(X))
     else:
+        # Process the data in the order as it is
         indices = np.arange(len(X))
     for i in range(0, len(X), batch_size):
         yield X[indices[i : i + batch_size]], y[indices[i : i + batch_size]]
 
 
 def run_epoch(model, optimizer, X_train, y_train, batch_size, loss_fn, device):
+    n_samples = len(X_train)
     total_loss = 0
 
     # Set the model to training mode, essential when using certain layers, such as BatchNorm or Dropout
@@ -319,7 +322,7 @@ def run_epoch(model, optimizer, X_train, y_train, batch_size, loss_fn, device):
 
         # Accumulate the loss (for monitoring purposes)
         total_loss += loss.item()
-    return total_loss
+    return total_loss / n_samples
 
 
 # %% [markdown]
@@ -341,7 +344,7 @@ else:
 class BaselineModel(nn.Module):
     def __init__(self):
         super().__init__()
-        self.seq = nn.Sequential(
+        self.mlp = nn.Sequential(
             nn.Linear(in_features=2, out_features=12, bias=True),
             nn.Tanh(),
             nn.Linear(in_features=12, out_features=1),
@@ -349,7 +352,7 @@ class BaselineModel(nn.Module):
         )
 
     def forward(self, x):
-        return self.seq(x)
+        return self.mlp(x)
 
 
 # Initialize the model, optimizer and set the loss function
@@ -382,11 +385,13 @@ Now that we've trained the model, let's evaluate its performance on the testing 
 # %%
 def predict(model, X, y, batch_size, device):
     predictions = np.empty((0,))
-    for X_b, y_b in batch_generator(X, y, batch_size, shuffle=False):
-        X_b = torch.tensor(X_b, dtype=torch.float32, device=device)
-        y_b = torch.tensor(y_b, dtype=torch.float32, device=device)
-        y_pred = model(X_b).squeeze().detach().cpu().numpy()
-        predictions = np.concatenate((predictions, y_pred), axis=0)
+    model.eval()  # set the model to evaluation mode, essential when using certain layers, such as BatchNorm or Dropout
+    with torch.inference_mode():
+        for X_b, y_b in batch_generator(X, y, batch_size, shuffle=False):
+            X_b = torch.tensor(X_b, dtype=torch.float32, device=device)
+            y_b = torch.tensor(y_b, dtype=torch.float32, device=device)
+            y_pred = model(X_b).squeeze().detach().cpu().numpy()
+            predictions = np.concatenate((predictions, y_pred), axis=0)
     return np.round(predictions)
 
 
@@ -394,7 +399,6 @@ def accuracy(y_pred, y_gt):
     return np.sum(y_pred == y_gt) / len(y_gt)
 
 
-bad_model.eval()  # set the model to evaluation mode, essential when using certain layers, such as BatchNorm or Dropout
 bad_predictions = predict(bad_model, X_test, y_test, batch_size, device)
 bad_accuracy = accuracy(bad_predictions, y_test)
 
@@ -434,6 +438,8 @@ good_model.to(device)
 optimizer = None  # Set the optimizer instance here
 loss_fn = None  # Set the loss function instance here
 
+assert optimizer is not None, "Please set the optimizer!"
+assert loss_fn is not None, "Please set the loss!"
 
 good_model.train()
 
@@ -458,6 +464,8 @@ plot_points(
 
 # %% tags=["solution"]
 class GoodModel(nn.Module):
+    """Solution"""
+
     def __init__(self):
         super().__init__()
         self.seq = nn.Sequential(
@@ -480,8 +488,8 @@ good_model = GoodModel()
 good_model.to(device)
 
 # Set the optimizer and the loss function
-optimizer = torch.optim.AdamW(good_model.parameters(), lr=0.001)
-loss_fn = nn.BCELoss(reduction="sum")
+optimizer = torch.optim.AdamW(good_model.parameters(), lr=0.001)  # AdamW optimizer
+loss_fn = nn.BCELoss(reduction="sum")  # Binary Cross Entropy Loss
 
 
 batch_size = 10
@@ -499,7 +507,7 @@ for epoch in (pbar := tqdm(range(num_epochs), total=num_epochs, desc="Training")
     pbar.set_postfix({"training loss": curr_loss})
 
 good_model.eval()
-good_predictions = predict(good_model, X_test, y_test, batch_size)
+good_predictions = predict(good_model, X_test, y_test, batch_size, device)
 good_accuracy = accuracy(good_predictions, y_test)
 
 plot_points(
@@ -592,5 +600,420 @@ plot_classifiers(bad_model, good_model)
 Let us know in the exercise channel when you got here and what accuracy your model achieved. We will compare different solutions and discuss why some of them are better than others. We will also discuss the generalization behaviour of the classifier outside of the domain it was trained on.
 
 Time: 60 working + 15 discussion
+</div>
+"""
+
+# %% [markdown]
+"""
+<div class="alert alert-block alert-info">
+    <h2>Task 4</h2>
+
+Classify Hand-Written Digits
+</div>
+
+In this task, we will classify data points of higher dimensions: Each data point is now an image of size 28 by 28 pixels depicting a hand-written digit from the famous MNIST dataset.
+
+Instead of feeding the image as one long vector into a fully connected network (as in the previous task), we will take advantage of the spatial information in images and use a convolutional neural network. As a reminder, a convolutional neural network differs from a fully connected one in that not each pair of nodes is connected, and weights are shared between nodes in one layer:
+
+<div>
+<img src="attachment:convolutional_network.png" width="300"/>
+</div>
+
+However, the output of our network will be a 10-dimensional vector, indicating the probabilities for the input to be one of ten classes (corresponding to the digits 0 to 9). For that, we will use fully connected layers at the end of our network, once the dimensionality of a feature map is small enough to capture high-level information.
+
+In principle, we could just use convolutional layers to reduce the size of each feature map by 2 until one feature map is small enough to allow using a fully connected layer. However, it is good practice to have a convolutional layer followed by a so-called downsampling layer, which effectively reduces the size of the feature map by the downsampling factor.
+"""
+
+
+# %% [markdown]
+"""
+### Data
+The following snippet will download the MNIST dataset using the `torchvision` library. The `transforms=transforms.ToTensor()` parameter will ensure that the data format is appropriate for using it directly (adding a channel dimension, rescaling values between 0 and 1).
+"""
+
+# %%
+from torchvision.datasets import MNIST
+from torchvision import transforms
+
+all_train_ds = MNIST(
+    root=".mnist", train=True, download=True, transform=transforms.ToTensor()
+)
+test_ds = MNIST(
+    root=".mnist", train=False, download=True, transform=transforms.ToTensor()
+)
+
+# %% [markdown]
+"""
+The dataset is already split into training and test data, but we will further split the training data into training and validation, and show a few samples in the next cell.
+"""
+
+# %%
+num_all_train_samples = len(all_train_ds)
+train_ds, val_ds = torch.utils.data.random_split(
+    all_train_ds, [int(0.8 * num_all_train_samples), int(0.2 * num_all_train_samples)]
+)
+
+print(f"Training data has {len(train_ds)} samples")
+print(f"Validation data has {len(val_ds)} samples")
+print(f"Testing data has {len(test_ds)} samples")
+
+
+def show_samples(dataset, title, predictions=None, num_samples=10):
+    fig, axs = plt.subplots(1, num_samples, figsize=(3 * num_samples, 3))
+    fig.suptitle(title, size=40, y=1.2)
+    if predictions is not None:
+        assert len(predictions) == len(
+            dataset
+        ), "Number of given predictions must match number of samples"
+    for i in range(num_samples):
+        img, label = dataset[i]
+        if predictions is not None:
+            label = int(predictions[i])
+        img = img.squeeze().numpy()
+        axs[i].imshow(img, cmap="gray")
+        (
+            axs[i].set_title(f"Label: {label}")
+            if predictions is None
+            else axs[i].set_title(f"Prediction: {label}")
+        )
+        axs[i].axis("off")
+    plt.show()
+
+
+show_samples(train_ds, "Training Data")
+show_samples(val_ds, "Validation Data")
+show_samples(test_ds, "Testing Data")
+
+# %% [markdown]
+"""
+Let us make sure that the data is in the right format for using with `torch` modules. Convolutional layers expect an input shape of (B, C, H, W) (batch, channel, height and width). The batch dimension represents different samples in a batch. Therefore, each sample (image) in our dataset should be (1,28,28), as the data is single-channel. We will also check the labels to make sure they are integers between 0 and 9.
+
+While manually checking a couple of images is fine (and recommended), it is also good to automatize this process and check the data format in general (as long as the size allows so!).
+"""
+# %%
+print("Training image shape:", train_ds[0][0].shape)
+print("Training image label:", train_ds[0][1])
+
+print("Validation image shape:", val_ds[0][0].shape)
+print("Validation image label:", val_ds[0][1])
+
+print("Testing image shape:", test_ds[0][0].shape)
+print("Testing image label:", test_ds[0][1])
+
+assert all(
+    img.shape == (1, 28, 28) and isinstance(label, int) and 0 <= label <= 9
+    for img, label in train_ds
+), "Unexpected shape, type or label for training data"
+
+assert all(
+    img.shape == (1, 28, 28) and isinstance(label, int) and 0 <= label <= 9
+    for img, label in val_ds
+), "Unexpected shape, type or label for validation data"
+
+assert all(
+    img.shape == (1, 28, 28) and isinstance(label, int) and 0 <= label <= 9
+    for img, label in test_ds
+), "Unexpected shape, type or label for test data"
+print("\nData format is correct.")
+
+# %% [markdown]
+"""
+<div class="alert alert-block alert-info">
+    <b>Task 4.1</b>: Implement a Convolutional Neural Network
+</div>
+
+Create a CNN using `torch` layers with the following specifications:
+* one convolution, size 3x3, 32 output feature maps, padding=1, followed by a ReLU activation function
+* one downsampling layer, size 2x2, via max-pooling
+* one convolution, size 3x3, 32 output feature maps, padding=1, followed by a ReLU activation function
+* one downsampling layer, size 2x2, via max-pooling
+* one fully connected (linear) layer with 64 units (the previous feature maps need to be flattened for that), followed by a ReLU activation function
+* one fully connected (linear) layer with 10 units, **without any activation function**. This will be the logits of the network.
+
+The fact that we do not add any activation function in the output is because certain loss functions in PyTorch, such as `nn.CrossEntropyLoss`, already apply the activation function in a more efficient manner when computing the loss, offering speedup and more numerical stability compared to explicitly adding it. Therefore, it is good practice not to add an activation function in the output layer when using such loss functions during training. 
+
+Each layer above has a corresponding `torch` implementation (e.g., a convolutional layer is implemented by [nn.Conv2D](https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html)), and the linear layer by [nn.Linear](https://pytorch.org/docs/stable/generated/torch.nn.Linear.html) (which you have used before in Task 3). You can find the other necessary modules by browsing the [torch.nn documentation](https://pytorch.org/docs/stable/nn.html)!
+
+
+<div class="alert alert-block alert-warning">
+    <b>Question:</b>
+    PyTorch requires explicitly giving the number of input features/channels to each Linear/Conv2D layer. Therefore, you need to know the number of input features/channels for those layers.
+    What is the number of input features/channels for each layer in the CNN described above? Take particular care with the number of input features in the first fully connected layer. You can assume the convolutional layers will preserve the input size (thanks to the `padding=1`). 
+</div>
+"""
+
+
+# %% tags=["task"]
+class CNNModel(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+        # TASK: define the layers of the model
+        self.conv = nn.Sequential(
+            # Add here the convolutional layers and the flattening module
+        )
+        self.dense = nn.Sequential(
+            # Add here the fully connected layers
+        )
+
+    def forward(self, x):
+        y = self.conv(x)
+        y = self.dense(y)
+        return y
+
+
+cnn_model = CNNModel()
+
+try:
+    cnn_model(torch.zeros(1, 1, 28, 28))
+except RuntimeError as e:
+    if str(e).startswith("mat1 and mat2 shapes cannot be multiplied"):
+        print(
+            f"The model does not work correctly with the input shape. Please double check the number of features/channels for the fully connected layers, as well as the `padding` argument of the convolutional layers. The error is:\n{e}"
+        )
+    else:
+        raise e
+print(
+    "Trainable params:",
+    sum(p.numel() for p in cnn_model.parameters() if p.requires_grad),
+)
+del cnn_model  # clean up the temporary model
+
+
+# %% tags=["solution"]
+class CNNModel(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+        # Define the layers of the model
+        self.conv = nn.Sequential(
+            nn.Conv2d(in_channels=1, out_channels=32, kernel_size=(3, 3), padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=(2, 2)),
+            nn.Conv2d(in_channels=32, out_channels=32, kernel_size=(3, 3), padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=(2, 2)),
+            nn.Flatten(),
+        )
+        self.dense = nn.Sequential(
+            nn.Linear(in_features=32 * 7 * 7, out_features=64),
+            nn.ReLU(),
+            nn.Linear(in_features=64, out_features=10),
+        )
+
+    def forward(self, x):
+        y = self.conv(x)
+        y = self.dense(y)
+        return y
+
+
+cnn_model = CNNModel()
+
+try:
+    cnn_model(torch.zeros(1, 1, 28, 28))
+except RuntimeError as e:
+    if str(e).startswith("mat1 and mat2 shapes cannot be multiplied"):
+        print(
+            f"The model does not work with the input shape. Please double check the number of features/channels for the fully connected layers. The error is:\n{e}"
+        )
+    else:
+        raise e
+print(
+    "Trainable params:",
+    sum(p.numel() for p in cnn_model.parameters() if p.requires_grad),
+)
+del cnn_model  # clean up the temporary model
+
+# %% [markdown]
+"""
+The last line in the previous cell prints the number of trainable parameters of your model. This number should be 110634.
+
+<div class="alert alert-block alert-info">
+    <b>Task 4.2</b>: Train the Network
+</div>
+
+As we did for Task 3, we will define some auxiliary functions for the training procedure which include, as before, the training loop (which we rewrite to add the computation of a metric to monitor during training), but also a validation procedure which will be used to evaluate the model on the validation dataset on every epoch.
+
+Moreover, these procedures will use the very commonly used `DataLoader` class to deal with the data in batches. This PyTorch module allows an easy interface to iterate over the data in batches and comes with many benefits, such as the potential to load the data quicker with parallel processes.
+"""
+
+
+# %%
+def run_epoch(model, optimizer, train_dataloader, loss_fn, device):
+    n_samples = len(train_dataloader.dataset)
+    total_loss = 0
+    total_correct = 0
+
+    # Set the model to training mode
+    model.train()
+    for X_b, y_b in train_dataloader:
+        # Convert the data to PyTorch tensors
+        X_b = X_b.to(device)
+        y_b = y_b.long().to(
+            device
+        )  # Ensure the labels are of type long (int) as required by the loss function nn.CrossEntropyLoss
+
+        # Reset the optimizer state
+        optimizer.zero_grad()
+
+        # Forward pass: pass the data through the model and retrieve the prediction
+        y_pred = model(X_b).squeeze()
+
+        # Compute the loss function with the prediction and the ground truth
+        loss = loss_fn(y_pred, y_b)
+
+        # Backward pass: compute the gradient of the loss w.r.t. the parameters
+        loss.backward()
+
+        # Update the model parameters
+        optimizer.step()
+
+        # Accumulate the loss (for monitoring purposes)
+        total_loss += loss.item()
+
+        # Compute the number of correct predictions
+        total_correct += (y_pred.argmax(dim=1) == y_b).sum().item()
+    train_loss = total_loss / n_samples
+    train_accuracy = total_correct / n_samples
+    return train_loss, train_accuracy
+
+
+def validate(model, val_dataloader, loss_fn, device):
+    total_loss = 0
+    total_correct = 0
+    n_samples = len(val_dataloader.dataset)
+
+    model.eval()
+    with torch.inference_mode():
+        for X_b, y_b in val_dataloader:
+            X_b = X_b.to(device)
+            y_b = y_b.long().to(device)
+            y_pred = model(X_b)
+            total_loss += loss_fn(y_pred, y_b).item()
+            total_correct += (y_pred.argmax(dim=1) == y_b).sum().item()
+    val_loss = total_loss / n_samples
+    val_accuracy = total_correct / n_samples
+    return val_loss, val_accuracy
+
+
+# %% [markdown]
+"""
+We are now ready to train the network!
+
+Instantiate and fit your `cnn_model` similar to how we compiled the spiral classifier above, but:
+* use `nn.CrossEntropyLoss` as the loss, with `reduction="sum"`
+* use `torch.optim.AdamW` as the optimizer, with learning rate `lr=0.001`
+* set a batch size of 128 samples
+* train for 10 epochs
+"""
+# %% tags=["solution"]
+cnn_model = CNNModel()
+cnn_model.to(device)
+
+
+# TASK: set the optimizer, loss function, batch size and number of epochs
+optimizer = None
+loss_fn = None
+batch_size = None
+num_epochs = None
+
+assert optimizer is not None, "Please set the optimizer!"
+assert loss_fn is not None, "Please set the loss function!"
+assert batch_size is not None, "Please set the batch size!"
+assert num_epochs is not None, "Please set the number of epochs!"
+
+train_dataloader = torch.utils.data.DataLoader(
+    train_ds, batch_size=batch_size, shuffle=True, pin_memory=True
+)
+val_dataloader = torch.utils.data.DataLoader(
+    val_ds, batch_size=batch_size, shuffle=False, pin_memory=True
+)
+
+for epoch in (pbar := tqdm(range(num_epochs), desc="Training", total=num_epochs)):
+    train_loss, train_acc = run_epoch(
+        cnn_model, optimizer, train_dataloader, loss_fn, device
+    )
+    val_loss, val_acc = validate(cnn_model, val_dataloader, loss_fn, device)
+    pbar.set_postfix(
+        {
+            "train_loss": train_loss,
+            "val_loss": val_loss,
+            "train_acc": train_acc,
+            "val_acc": val_acc,
+        }
+    )
+
+# %% tags=["solution"]
+cnn_model = CNNModel()
+cnn_model.to(device)
+
+
+optimizer = torch.optim.AdamW(cnn_model.parameters(), lr=0.001)
+loss_fn = nn.CrossEntropyLoss(reduction="sum")
+
+batch_size = 128
+num_epochs = 10
+
+train_dataloader = torch.utils.data.DataLoader(
+    train_ds, batch_size=batch_size, shuffle=True, pin_memory=True
+)
+val_dataloader = torch.utils.data.DataLoader(
+    val_ds, batch_size=batch_size, shuffle=False, pin_memory=True
+)
+
+for epoch in (pbar := tqdm(range(num_epochs), desc="Training", total=num_epochs)):
+    train_loss, train_acc = run_epoch(
+        cnn_model, optimizer, train_dataloader, loss_fn, device
+    )
+    val_loss, val_acc = validate(cnn_model, val_dataloader, loss_fn, device)
+    pbar.set_postfix(
+        {
+            "train_loss": train_loss,
+            "val_loss": val_loss,
+            "train_acc": train_acc,
+            "val_acc": val_acc,
+        }
+    )
+
+# %% [markdown]
+"""
+Now that we trained our model, let's evaluate its performance on the test dataset.
+"""
+
+
+# %%
+def predict(model, test_dataloader, device):
+    predictions = np.empty((0,))
+    model.eval()
+    with torch.inference_mode():
+        for X_b, y_b in tqdm(
+            test_dataloader, desc="Predicting", total=len(test_dataloader)
+        ):
+            X_b = X_b.to(device)
+            y_b = y_b.long().to(device)
+            y_pred = model(X_b).argmax(axis=1).cpu().numpy()
+            predictions = np.concatenate((predictions, y_pred), axis=0)
+    return predictions
+
+
+y_test_gt = np.array([y for _, y in test_ds])
+
+test_dataloader = torch.utils.data.DataLoader(
+    test_ds, batch_size=batch_size, shuffle=False, pin_memory=True
+)
+y_test_predicted = predict(cnn_model, test_dataloader, device)
+
+test_acc = accuracy(y_test_predicted, y_test_gt)
+print("Testing accuracy = ", test_acc)
+show_samples(test_ds, "Testing Data", predictions=y_test_predicted, num_samples=10)
+
+# %% [markdown]
+"""
+<div class="alert alert-block alert-success">
+<h2> Checkpoint 4</h2>
+
+After 10 epochs, your model should achieve a training, validation, and test accuracy of more than 95%. We will use this checkpoint to discuss why we use training, validation, and testing datasets in practice.
+
+time: 65 working + 20 discussion
 </div>
 """

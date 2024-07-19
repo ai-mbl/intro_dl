@@ -7,7 +7,8 @@ mamba create -y -n 02_intro_dl python=3.9
 mamba activate 02_intro_dl
 
 # Install dependencies
-# mamba install -y tensorflow tensorflow-gpu keras matplotlib jupyter
+mamba install -y matplotlib jupyter tqdm
+mamba install -y pytorch torchvision pytorch-cuda=12.1 -c pytorch -c nvidia
 
 mamba deactivate
 
