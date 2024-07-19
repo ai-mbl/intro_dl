@@ -11,7 +11,12 @@
     </table>
 </div>
 
-In the following exercise we explore the basic building blocks of deep learning: the perceptron and how to stack multiple perceptrons together into layers to build a neural network.
+In the following exercise we explore the basic building blocks of deep learning: the perceptron and how to stack multiple perceptrons together into layers to build a neural network. In particular, we will:
+- Implement a perceptron and a 2-layer perceptron to compute the XOR function using NumPy.
+- Be introduced to PyTorch, a popular deep learning framework.
+- Implement and train a simple neural network to classify points in a 2D plane using PyTorch.
+- Implement and train a simple convolutional neural network to classify hand-written digits from the MNIST dataset using PyTorch.
+- Discuss important topics of ML/DL, such as data splitting, under/overfitting and model generalization.
 
 <div class="alert alert-block alert-danger">
     Set your python kernel to <code>02_intro_dl</code>
@@ -347,7 +352,7 @@ else:
 class BaselineModel(nn.Module):
     def __init__(self):
         """This method (:= `constructor`) is automatically called when the class instance is created, i.e. `model = BaselineModel()`
-           Note that this initializes the model architecture, but does not yet apply it to any data. This is done in the `forward` method.
+        Note that this initializes the model architecture, but does not yet apply it to any data. This is done in the `forward` method.
         """
         super().__init__()
         self.mlp = nn.Sequential(
@@ -432,7 +437,7 @@ plot_points(
 
 Now, try to find a more advanced architecture that is able to solve the classification problem. You can vary width (number of neurons per layer) and depth (number of layers) of the network. You can also play around with [different activation functions](https://pytorch.org/docs/stable/nn.html#non-linear-activations-weighted-sum-nonlinearity), [loss functions](https://pytorch.org/docs/stable/nn.html#loss-functions), and [optimizers](https://pytorch.org/docs/stable/optim.html).
 
-Hint: some commonly used losses are `nn.BCELoss()` (binary crossentropy loss), `nn.MSELoss()` or `nn.L1Loss()` (one of them is particularly used for binary problems... :)). Some commonly used optimizers are `torch.optim.SGD()`, `torch.optim.AdamW()`, or `torch.optim.Adagrad()`.
+Hint: some commonly used losses are `nn.BCELoss()` (binary crossentropy loss), `nn.MSELoss()` or `nn.L1Loss()` (one of them is particularly used for binary problems... :)). Some commonly used optimizers, apart from `torch.optim.SGD()`, are `torch.optim.AdamW()`, or `torch.optim.Adagrad()`.
 """
 
 
@@ -545,7 +550,11 @@ plot_points(
 
 The next cell visualizes the output of your model for all 2D inputs with coordinates between 0 and 1, similar to how we plotted the output of the perceptron in **Task 1**. Change the code below to show the domain -15 to 15 for both input dimensions and compare the outputs of the `bad_model` model with yours. See also how the model performs outside the intervals it was trained on by increasing the domain even further.
 
-Looking at the classifier on an extended domain, what observations can you make?
+
+<div class="alert alert-block alert-warning">
+    <b>Question:</b>
+    Looking at the classifier on an extended domain, what observations can you make?
+</div>
 """
 
 
