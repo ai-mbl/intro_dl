@@ -4,9 +4,9 @@
 <div>
     <table>
         <tr style="background-color:white">
-            <td><img src="attachment:perceptron.png" width="100%"/></td>
-            <td><img src="attachment:mlp.png" width="100%"/></td>
-            <td><img src="attachment:neural_network.png" width="100%"/></td>
+            <td><img src="attachments/perceptron.png" width="100%"/></td>
+            <td><img src="attachments/mlp.png" width="100%"/></td>
+            <td><img src="attachments/neural_network.png" width="100%"/></td>
         </tr>
     </table>
 </div>
@@ -33,7 +33,7 @@ plt.rcParams["figure.figsize"] = (5, 5)
 ## Part 1: Perceptrons
 
 <div>
-    <img src="attachment:perceptron.png" width="600"/>
+    <img src="attachments/perceptron.png" width="600"/>
 </div>
 
 As we saw in the lecture ["Introduction to Deep Learning"](intro_dl_lecture.pdf), a perceptron is a simple unit that combines its inputs $x_i$ in a linear fashion (using weights $w_i$ and a bias $b$), followed by a non-linear function $f$.
@@ -127,7 +127,7 @@ XOR is a fundamental logic gate that outputs `1` whenever there is an odd number
 
 The function of an XOR gate can also be understood as a classification problem on $x \in \{0,1\}^2$ and we can think about designing a classifier acting as an XOR gate. It turns out that this problem is not solvable by a single perceptron (https://en.wikipedia.org/wiki/Perceptron) because the set of points $\{(0,0), (0,1), (1,0), (1,1)\}$ is not linearly separable.
 
-![mlp.png](attachment:mlp.png)
+![mlp.png](attachments/mlp.png)
 
 Design a two layer perceptron using your `perceptron` function above that implements an XOR Gate on two inputs. Think about the flow of information through this simple network and set the weight values by hand such that the network produces the XOR function.
 
@@ -164,6 +164,7 @@ def xor(x):
     w2 = [0.0, 0.0]
     b2 = 0.0
     f = lambda a: a
+    # END OF TASK
 
     # output of the two perceptrons in the first layer
     h1 = perceptron(x, w=w11, b=b11, f=f)
@@ -225,7 +226,7 @@ Time: 30 working + 15 min discussion
 ## Part 2: "Deep" Neural Networks
 
 <div>
-    <img src="attachment:neural_network.png" width=500/>
+    <img src="attachments/neural_network.png" width=500/>
 </div>
 
 <div class="alert alert-block alert-info">
@@ -298,7 +299,7 @@ def run_epoch(model, optimizer, X_train, y_train, batch_size, loss_fn, device):
     n_samples = len(X_train)
     total_loss = 0
 
-    # Set the model to training mode, essential when using certain layers, such as BatchNorm or Dropout
+    # Set the model to training mode, essential when using certain layers
     model.train()
     for X_b, y_b in batch_generator(X_train, y_train, batch_size):
         # Convert the data to PyTorch tensors
@@ -327,7 +328,9 @@ def run_epoch(model, optimizer, X_train, y_train, batch_size, loss_fn, device):
 
 # %% [markdown]
 """
-Let's now write the simple baseline model, consisting of one hidden layer with 12 neurons (or perceptrons). You will see that this baseline model performs pretty poorly. Read the following code snippets and try to understand the involved functions:
+Before continuing, you should know that PyTorch is object-oriented (OOP) and follows specific class structures. If you are not too familiar with Python or OOP, it may be a bit tricky to understand the structure at first, and what executes when. Don't despair! Getting the grasp on it is easier than it seems. Here we will focus on getting the architecture of the model right, so most of the boilerplate work will be already lifted.
+
+So, let's now write the simple baseline model, consisting of one hidden layer with 12 neurons (or perceptrons). You will see that this baseline model performs pretty poorly. Read the following code snippets and try to understand the involved functions:
 """
 
 # %%
@@ -343,6 +346,9 @@ else:
 
 class BaselineModel(nn.Module):
     def __init__(self):
+        """This method (:= `constructor`) is automatically called when the class instance is created, i.e. `model = BaselineModel()`
+           Note that this initializes the model architecture, but does not yet apply it to any data. This is done in the `forward` method.
+        """
         super().__init__()
         self.mlp = nn.Sequential(
             nn.Linear(in_features=2, out_features=12, bias=True),
@@ -351,7 +357,17 @@ class BaselineModel(nn.Module):
             nn.Sigmoid(),
         )
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """This method can be called to perform a forward pass of the model, i.e. `model.forward(x)`.
+           It is automatically called when the class instance is called as a function, i.e. `model(x)`, which is highly recommended.
+           In this example we have one module, but you can have multiple modules and combine them here.
+
+        Args:
+            x (torch.Tensor): The input data, which should have the shape (B, 2) in this case, where B is the batch size
+
+        Returns:
+            torch.Tensor: results of applying the model to the input data, Shape will be (B, 1)
+        """
         return self.mlp(x)
 
 
@@ -385,7 +401,7 @@ Now that we've trained the model, let's evaluate its performance on the testing 
 # %%
 def predict(model, X, y, batch_size, device):
     predictions = np.empty((0,))
-    model.eval()  # set the model to evaluation mode, essential when using certain layers, such as BatchNorm or Dropout
+    model.eval()  # set the model to evaluation mode
     with torch.inference_mode():
         for X_b, y_b in batch_generator(X, y, batch_size, shuffle=False):
             X_b = torch.tensor(X_b, dtype=torch.float32, device=device)
@@ -415,6 +431,8 @@ plot_points(
 </div>
 
 Now, try to find a more advanced architecture that is able to solve the classification problem. You can vary width (number of neurons per layer) and depth (number of layers) of the network. You can also play around with [different activation functions](https://pytorch.org/docs/stable/nn.html#non-linear-activations-weighted-sum-nonlinearity), [loss functions](https://pytorch.org/docs/stable/nn.html#loss-functions), and [optimizers](https://pytorch.org/docs/stable/optim.html).
+
+Hint: some commonly used losses are `nn.BCELoss()` (binary crossentropy loss), `nn.MSELoss()` or `nn.L1Loss()` (one of them is particularly used for binary problems... :)). Some commonly used optimizers are `torch.optim.SGD()`, `torch.optim.AdamW()`, or `torch.optim.Adagrad()`.
 """
 
 
@@ -422,9 +440,11 @@ Now, try to find a more advanced architecture that is able to solve the classifi
 class GoodModel(nn.Module):
     def __init__(self):
         super().__init__()
+        # TASK
         self.mlp = nn.Sequential(
-            # Add your layers and activation functions here
+            # add your layers and activation functions here
         )
+        # END OF TASK
 
     def forward(self, x):
         return self.mlp(x)
@@ -434,9 +454,11 @@ class GoodModel(nn.Module):
 good_model = GoodModel()
 good_model.to(device)
 
-# Set the optimizer and the loss function
-optimizer = None  # Set the optimizer instance here
-loss_fn = None  # Set the loss function instance here
+# TASK: set the optimizer and the loss function
+optimizer = None  # Remember to instantiate the class with the model parameters and the learning rate
+loss_fn = (
+    None  # Remember to instantiate the class with the reduction parameter set to "sum"
+)
 
 assert optimizer is not None, "Please set the optimizer!"
 assert loss_fn is not None, "Please set the loss!"
@@ -486,8 +508,8 @@ class GoodModel(nn.Module):
 good_model = GoodModel()
 good_model.to(device)
 
-# Set the optimizer and the loss function
-optimizer = torch.optim.AdamW(good_model.parameters(), lr=0.001)  # AdamW optimizer
+# SOLUTION
+optimizer = torch.optim.AdamW(good_model.parameters(), lr=0.001)
 loss_fn = nn.BCELoss(reduction="sum")  # Binary Cross Entropy Loss
 
 
@@ -533,9 +555,11 @@ def plot_classifiers(classifier_1, classifier_2):
     plt.subplots(1, 2, figsize=(10, 5))
 
     num_samples = 200
-    # change the plotted domain here
+
+    # TASK: change the plotted domain here
     domain_x1 = (0.0, 1.0)
     domain_x2 = (0.0, 1.0)
+    # END OF TASK
 
     domain = np.meshgrid(
         np.linspace(*domain_x1, num_samples), np.linspace(*domain_x2, num_samples)
@@ -615,7 +639,7 @@ In this task, we will classify data points of higher dimensions: Each data point
 Instead of feeding the image as one long vector into a fully connected network (as in the previous task), we will take advantage of the spatial information in images and use a convolutional neural network. As a reminder, a convolutional neural network differs from a fully connected one in that not each pair of nodes is connected, and weights are shared between nodes in one layer:
 
 <div>
-<img src="attachment:convolutional_network.png" width="300"/>
+<img src="attachments/convolutional_network.png" width="300"/>
 </div>
 
 However, the output of our network will be a 10-dimensional vector, indicating the probabilities for the input to be one of ten classes (corresponding to the digits 0 to 9). For that, we will use fully connected layers at the end of our network, once the dimensionality of a feature map is small enough to capture high-level information.
@@ -754,6 +778,7 @@ class CNNModel(nn.Module):
         self.dense = nn.Sequential(
             # Add here the fully connected layers
         )
+        # END OF TASK
 
     def forward(self, x):
         y = self.conv(x)
@@ -916,6 +941,7 @@ optimizer = None
 loss_fn = None
 batch_size = None
 num_epochs = None
+# END OF TASK
 
 assert optimizer is not None, "Please set the optimizer!"
 assert loss_fn is not None, "Please set the loss function!"
