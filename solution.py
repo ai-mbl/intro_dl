@@ -20,7 +20,10 @@ In particular, we will:
 - Discuss important topics in ML/DL, such as data splitting, under/overfitting and model generalization.
 
 <div class="alert alert-block alert-danger">
-    Set your python kernel to <code>02_intro_dl</code>
+    Set your python kernel to <code>01_intro_dl</code>
+    <tr style="background-color:white">
+        <td><img src="attachments/kernel-change.png" width="100%"/></td>
+    </tr>
 </div>
 
 ### Acknowledgements

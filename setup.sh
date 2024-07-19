@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 # Create environment
-conda create -y -n 02_intro_dl python=3.9
+conda create -y -n 01_intro_dl python=3.9
 
 # Activate environment
-conda activate 02_intro_dl
+conda activate 01_intro_dl
 
 # Install dependencies
 conda install -y matplotlib jupyter tqdm
