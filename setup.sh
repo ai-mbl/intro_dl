@@ -10,5 +10,4 @@ conda activate 02_intro_dl
 conda install -y matplotlib jupyter tqdm
 conda install -y pytorch torchvision pytorch-cuda=12.1 -c pytorch -c nvidia
 
-conda deactivate
-
+conda activate base
