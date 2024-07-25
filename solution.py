@@ -17,7 +17,7 @@ In particular, we will:
 - Introduce PyTorch, a popular framework for deep learning.
 - Implement and train a simple neural network (a multi-layer perceptron) to classify points in a 2D plane using PyTorch.
 - Implement and train a simple deep convolutional neural network to classify hand-written digits from the MNIST dataset using PyTorch.
-- Discuss important topics of ML/DL, such as data splitting, under/overfitting and model generalization.
+- Discuss important topics in ML/DL, such as data splitting, under/overfitting and model generalization.
 
 <div class="alert alert-block alert-danger">
     Set your python kernel to <code>02_intro_dl</code>
@@ -25,7 +25,7 @@ In particular, we will:
 
 ### Acknowledgements
 
-This notebook was created by Albert Dominguez Mantes, Nils Eckstein, Julia Buhmann, and Jan Funke.
+The original notebook was created by Nils Eckstein, Julia Buhmann, and Jan Funke. Albert Dominguez Mantes ported the notebook to PyTorch.
 """
 
 # %%
@@ -550,12 +550,6 @@ plot_points(
 </div>
 
 The next cell visualizes the output of your model for all 2D inputs with coordinates between 0 and 1, similar to how we plotted the output of the perceptron in **Task 1**. Change the code below to show the domain -15 to 15 for both input dimensions and compare the outputs of the `bad_model` model with yours. See also how the model performs outside the intervals it was trained on by increasing the domain even further.
-
-
-<div class="alert alert-block alert-warning">
-    <b>Question:</b>
-    Looking at the classifier on an extended domain, what observations can you make?
-</div>
 """
 
 
@@ -627,6 +621,11 @@ plot_classifiers(bad_model, good_model)
 
 # %% [markdown]
 """
+<div class="alert alert-block alert-warning">
+    <b>Question:</b>
+    Looking at the classifier on an extended domain, what observations can you make?
+</div>
+
 <div class="alert alert-block alert-success">
 <h2> Checkpoint 3</h2>
 
@@ -692,6 +691,7 @@ print(f"Testing data has {len(test_ds)} samples")
 
 
 def show_samples(dataset, title, predictions=None, num_samples=10):
+    plt.close()
     fig, axs = plt.subplots(1, num_samples, figsize=(3 * num_samples, 3))
     fig.suptitle(title, size=40, y=1.2)
     if predictions is not None:
@@ -755,7 +755,7 @@ print("\nData format is correct.")
     <b>Task 4.1</b>: Implement a Convolutional Neural Network
 </div>
 
-Create a CNN using `torch` layers with the following specifications:
+Create a CNN using `torch` module with the following specifications:
 * one convolution, size 3x3, 32 output feature maps, padding=1, followed by a ReLU activation function
 * one downsampling layer, size 2x2, via max-pooling
 * one convolution, size 3x3, 32 output feature maps, padding=1, followed by a ReLU activation function
@@ -763,15 +763,15 @@ Create a CNN using `torch` layers with the following specifications:
 * one fully connected (linear) layer with 64 units (the previous feature maps need to be flattened for that), followed by a ReLU activation function
 * one fully connected (linear) layer with 10 units, **without any activation function**. This will be the logits of the network.
 
-The fact that we do not add any activation function in the output is because certain loss functions in PyTorch, such as `nn.CrossEntropyLoss`, already apply the activation function in a more efficient manner when computing the loss, offering speedup and more numerical stability compared to explicitly adding it. Therefore, it is good practice not to add an activation function in the output layer when using such loss functions during training. 
+The fact that we do not add any activation function in the output is because certain loss functions in PyTorch (e.g. [`nn.CrossEntropyLoss`](https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html)) expect the logits of the network and already apply the activation function in a more efficient manner when computing the loss, offering speedup and more numerical stability compared to explicitly adding it. Therefore, one should not to add an activation function in the output layer when using these loss functions during training (always double check what is the expected input for the loss function you want to use!).
 
-Each layer above has a corresponding `torch` implementation (e.g., a convolutional layer is implemented by [nn.Conv2D](https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html)), and the linear layer by [nn.Linear](https://pytorch.org/docs/stable/generated/torch.nn.Linear.html) (which you have used before in Task 3). You can find the other necessary modules by browsing the [torch.nn documentation](https://pytorch.org/docs/stable/nn.html)!
+Each layer above has a corresponding `torch` implementation (e.g., a convolutional layer is implemented by [`nn.Conv2D`](https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html), and the linear layer by [`nn.Linear`](https://pytorch.org/docs/stable/generated/torch.nn.Linear.html), which you have used before in Task 3). Please find the other necessary modules by browsing the [torch.nn documentation](https://pytorch.org/docs/stable/nn.html)! Flattening can be achieved by using the [`nn.Flatten` module](https://pytorch.org/docs/stable/generated/torch.nn.Flatten.html) with its default parameters.
 
 
 <div class="alert alert-block alert-warning">
     <b>Question:</b>
     PyTorch requires explicitly giving the number of input features/channels to each Linear/Conv2D layer. Therefore, you need to know the number of input features/channels for those layers.
-    What is the number of input features/channels for each layer in the CNN described above? Take particular care with the number of input features in the first fully connected layer. You can assume the convolutional layers will preserve the input size (thanks to the `padding=1`). 
+    What is the number of input features/channels for each layer in the CNN described above? Take particular care with the number of input features in the first fully connected layer (after flattening). You can assume the convolutional layers will preserve the input spatial size (thanks to the `padding=1`). Downsampling operations do not change the number of channels/feature maps, they simply reduce the spatial size by the pooling factor. 
 </div>
 """
 
@@ -783,7 +783,8 @@ class CNNModel(nn.Module):
 
         # TASK: define the layers of the model
         self.conv = nn.Sequential(
-            # Add here the convolutional layers and the flattening module
+            # Add here the convolutional and downsampling layers,
+            # as well as the flattening module
         )
         self.dense = nn.Sequential(
             # Add here the fully connected layers
@@ -803,7 +804,7 @@ try:
 except RuntimeError as e:
     if str(e).startswith("mat1 and mat2 shapes cannot be multiplied"):
         print(
-            f"The model does not work correctly with the input shape. Please double check the number of features/channels for the fully connected layers, as well as the `padding` argument of the convolutional layers. The error is:\n{e}"
+            f"The model does not work correctly with the input shape. Please double check the number of features/channels for the fully connected layers, as well as the `padding` argument of the convolutional layers. The full error is:\n{e}"
         )
     else:
         raise e
@@ -932,9 +933,50 @@ def validate(model, val_dataloader, loss_fn, device):
 
 # %% [markdown]
 """
+Below we define a helper function to visualize the training and validation loss and accuracies live during training. We will use it to monitor the training process of the network, and later to discuss some central concepts of ML.
+"""
+
+# %%
+from IPython.display import clear_output
+
+
+def live_training_plot(
+    train_loss, val_loss, train_acc, val_acc, num_epochs=10, figsize=(5, 5)
+):
+    clear_output(wait=True)
+    plt.close()
+    fig, axs = plt.subplots(1, 2, figsize=figsize)
+
+    axs[0].plot(train_loss, label="Training loss")
+    axs[0].plot(val_loss, label="Validation loss")
+
+    axs[1].plot(train_acc, label="Training accuracy")
+    axs[1].plot(val_acc, label="Validation accuracy")
+
+    axs[0].set_xlabel("Epochs")
+    axs[0].set_ylabel("Loss")
+
+    axs[1].set_xlabel("Epochs")
+    axs[1].set_ylabel("Accuracy")
+
+    axs[0].set_title("Loss")
+    axs[1].set_title("Accuracy")
+
+    axs[0].set_xlim(0, num_epochs - 1)
+    axs[1].set_xlim(0, num_epochs - 1)
+
+    axs[0].legend(loc="upper right")
+    axs[1].legend(loc="lower right")
+
+    plt.show()
+    return
+
+
+# %% [markdown]
+"""
 We are now ready to train the network!
 
-Instantiate and fit your `cnn_model` similar to how we compiled the spiral classifier above, but:
+Instantiate and fit your `cnn_model` similar to how you did for the spiral classifier above, but this time:
 * use `nn.CrossEntropyLoss` as the loss, with `reduction="sum"`
 * use `torch.optim.AdamW` as the optimizer, with learning rate `lr=0.001`
 * set a batch size of 128 samples
@@ -996,19 +1038,20 @@ train_dataloader = torch.utils.data.DataLoader(
 val_dataloader = torch.utils.data.DataLoader(
     val_ds, batch_size=batch_size, shuffle=False, pin_memory=True
 )
+train_losses, val_losses = [], []
+train_accs, val_accs = [], []
 
-for epoch in (pbar := tqdm(range(num_epochs), desc="Training", total=num_epochs)):
+for epoch in range(num_epochs):
     train_loss, train_acc = run_epoch(
         cnn_model, optimizer, train_dataloader, loss_fn, device
     )
     val_loss, val_acc = validate(cnn_model, val_dataloader, loss_fn, device)
-    pbar.set_postfix(
-        {
-            "train_loss": train_loss,
-            "val_loss": val_loss,
-            "train_acc": train_acc,
-            "val_acc": val_acc,
-        }
+    train_losses.append(train_loss)
+    val_losses.append(val_loss)
+    train_accs.append(train_acc)
+    val_accs.append(val_acc)
+    live_training_plot(
+        train_losses, val_losses, train_accs, val_accs, num_epochs, figsize=(10, 5)
     )
 
 # %% [markdown]
@@ -1040,7 +1083,7 @@ test_dataloader = torch.utils.data.DataLoader(
 y_test_predicted = predict(cnn_model, test_dataloader, device)
 
 test_acc = accuracy(y_test_predicted, y_test_gt)
-print("Testing accuracy = ", test_acc)
+print("Testing accuracy =", test_acc)
 show_samples(test_ds, "Testing Data", predictions=y_test_predicted, num_samples=10)
 
 # %% [markdown]
