@@ -941,7 +941,7 @@ from IPython.display import clear_output
 
 
 def live_training_plot(
-    train_loss, val_loss, train_acc, val_acc, num_epochs=10, figsize=(5, 5)
+    train_loss, val_loss, train_acc, val_acc, num_epochs=10, figsize=(10, 5)
 ):
     clear_output(wait=True)
     plt.close()
