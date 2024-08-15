@@ -153,7 +153,7 @@ def generate_xor_data():
     return xs, ys
 
 def plot_xor_data():
-    """Plot the XOR data.
+    """Plot the XOR data. Class 0 points are shown in red, class 1 points in green.
     """
     xs, ys = generate_xor_data()
     for x, y in zip(xs, ys):
@@ -169,7 +169,7 @@ plot_xor_data()
 
 
 # %% [markdown]
-"""The function of an XOR gate can also be understood as a binary classification problem given a 2D binary inputs $x$ ($x$ \in \{0,1\}^2$ and we can think about designing a classifier acting as an XOR gate. It turns out that this problem is not solvable by a single perceptron (https://en.wikipedia.org/wiki/Perceptron) because the set of points $\{(0,0), (0,1), (1,0), (1,1)\}$ is not linearly separable.
+"""The function of an XOR gate can also be understood as a binary classification problem given a 2D binary inputs $x$ ($x \in \{0,1\}^2$ and we can think about designing a classifier acting as an XOR gate. It turns out that this problem is not solvable by a single perceptron (https://en.wikipedia.org/wiki/Perceptron) because the set of points $\{(0,0), (0,1), (1,0), (1,1)\}$ is not linearly separable.
 
 ![mlp.png](attachments/mlp.png)
 
