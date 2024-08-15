@@ -35,7 +35,7 @@ The original notebook was created by Nils Eckstein, Julia Buhmann, and Jan Funke
 import matplotlib.pyplot as plt
 import numpy as np
 
-plt.rcParams["figure.figsize"] = (5, 5)
+plt.rcParams["figure.figsize"] = (5, 5) # this line sets the default size of plots
 
 # %% [markdown]
 """
@@ -86,19 +86,24 @@ def perceptron(x, w, b, f):
 
 # %%
 def plot_perceptron(w, b, f):
-
-    num_samples = 100
-    domain_x1 = (0.0, 1.0)
-    domain_x2 = (0.0, 1.0)
+    """This function will evaluate the perceptron on a grid of arbitrary points
+       (equispaced across 0-1) and plot the result in each point, which will reveal
+       the decision boundary of the perceptron.
+    """
+    
+    num_samples = 100 # number of samples in each dimension
+    domain_x1 = (0.0, 1.0) # domain of the plot (x-axis)
+    domain_x2 = (0.0, 1.0) # domain of the plot (y-axis)
 
     domain = np.meshgrid(
         np.linspace(*domain_x1, num_samples), np.linspace(*domain_x2, num_samples)
-    )
-    xs = np.array([domain[0].flatten(), domain[1].flatten()]).T
+    ) # create a grid of equispaced points in the domain
 
-    values = np.array([perceptron(x, w, b, f) for x in xs])
+    xs = np.array([domain[0].flatten(), domain[1].flatten()]).T # format the points as a list of 2D points to evaluate the perceptron on
 
-    plt.contourf(domain[0], domain[1], values.reshape(num_samples, num_samples))
+    values = np.array([perceptron(x, w, b, f) for x in xs]) # evaluate the perceptron on each point in the grid
+
+    plt.contourf(domain[0], domain[1], values.reshape(num_samples, num_samples)) # plot the result as filled contours
 
 
 # the following should show a linear classifier that is True (shown as green)
@@ -110,8 +115,8 @@ plot_perceptron(w=[1.0, -1.0], b=-0.1, f=non_linearity)
 """
 <div class="alert alert-block alert-success">
 <h2> Checkpoint 1 </h2>
-
-We will go over different ways to implement the perceptron together and discuss their efficiency. If you arrived here earlier, feel free to play around with the parameters of the perceptron (the weights and bias) as well as the activation function `f`.
+You have implemented a perceptron using basic Python and NumPy functions, as well as checked what the perceptron decision boundary looks like.
+We will now go over different ways to implement the perceptron together and discuss their efficiency. If you arrived here earlier, feel free to play around with the parameters of the perceptron (the weights and bias) as well as the activation function `f`.
 
 Time: 20 working, + 10 discussion
 </div>
@@ -133,8 +138,38 @@ XOR is a fundamental logic gate that outputs `1` whenever there is an odd number
 | 0 | 1 |    1     |
 | 1 | 0 |    1     |
 | 1 | 1 |    0     |
+"""
 
-The function of an XOR gate can also be understood as a classification problem on $x \in \{0,1\}^2$ and we can think about designing a classifier acting as an XOR gate. It turns out that this problem is not solvable by a single perceptron (https://en.wikipedia.org/wiki/Perceptron) because the set of points $\{(0,0), (0,1), (1,0), (1,1)\}$ is not linearly separable.
+# %%
+def generate_xor_data():
+    """Generate XOR data for pairs of binary inputs:
+    f(0,0) = 0
+    f(0,1) = 1
+    f(1,0) = 1
+    f(1,1) = 0
+    """
+    xs = [np.array([i, j]) for i in [0, 1] for j in [0, 1]]
+    ys = [int(np.logical_xor(x[0], x[1])) for x in xs]
+    return xs, ys
+
+def plot_xor_data():
+    """Plot the XOR data.
+    """
+    xs, ys = generate_xor_data()
+    for x, y in zip(xs, ys):
+        plt.scatter(*x, color="green" if y else "red")
+    
+    plt.xticks([0, 1])
+    plt.yticks([0, 1])
+    plt.grid(True)
+    plt.gca().set_frame_on(False)
+    plt.show()
+
+plot_xor_data()
+
+
+# %% [markdown]
+"""The function of an XOR gate can also be understood as a binary classification problem given a 2D binary inputs $x$ ($x$ \in \{0,1\}^2$ and we can think about designing a classifier acting as an XOR gate. It turns out that this problem is not solvable by a single perceptron (https://en.wikipedia.org/wiki/Perceptron) because the set of points $\{(0,0), (0,1), (1,0), (1,1)\}$ is not linearly separable.
 
 ![mlp.png](attachments/mlp.png)
 
@@ -144,13 +179,6 @@ Design a two layer perceptron using your `perceptron` function above that implem
 
 A single layer in a multilayer perceptron can be described by the equation $y = f(x^\intercal w + b)$ with $f$ a nonlinear function. $b$ is the so called bias (a constant offset vector) and $w$ a vector of weights. Since we are only interested in outputs of `0` or `1`, a good choice for $f$ is the threshold function. Think about which kind of logical operations you can implement with a single perceptron, then see how you can combine them to create an XOR. It might help to write down the equation for a two layer perceptron network.
 """
-
-
-# %%
-def generate_xor_data():
-    xs = [np.array([i, j]) for i in [0, 1] for j in [0, 1]]
-    ys = [int(np.logical_xor(x[0], x[1])) for x in xs]
-    return xs, ys
 
 
 # %% tags=["task"]
@@ -166,13 +194,13 @@ def xor(x):
     # for the perceptrons (which currently is the identity).
 
     # TASK: set the weights, biases and activation function of the perceptrons
-    w11 = [0.0, 0.0]
-    b11 = 0.0
-    w12 = [0.0, 0.0]
-    b12 = 0.0
-    w2 = [0.0, 0.0]
-    b2 = 0.0
-    f = lambda a: a
+    w11 = [0.0, 0.0] # weights of the first perceptron in the first layer
+    b11 = 0.0 # bias of the first perceptron in the first layer
+    w12 = [0.0, 0.0] # weights of the second perceptron in the first layer
+    b12 = 0.0 # bias of the second perceptron in the first layer
+    w2 = [0.0, 0.0] # weights of the perceptron in the last layer
+    b2 = 0.0 # bias of the perceptron in the last layer
+    f = lambda a: a # activation function of the perceptrons.
     # END OF TASK
 
     # output of the two perceptrons in the first layer
@@ -187,13 +215,13 @@ def xor(x):
 # %% tags=["solution"]
 def xor(x):
     # SOLUTION
-    w11 = [0.1, 0.1]
-    b11 = -0.05
-    w12 = [0.1, 0.1]
-    b12 = -0.15
-    w2 = [0.1, -0.1]
-    b2 = -0.05
-    f = lambda a: a > 0
+    w11 = [0.1, 0.1] # weights of the first perceptron in the first layer
+    b11 = -0.05 # bias of the first perceptron in the first layer
+    w12 = [0.1, 0.1] # weights of the second perceptron in the first layer
+    b12 = -0.15 # bias of the second perceptron in the first layer
+    w2 = [0.1, -0.1] # weights of the perceptron in the last layer
+    b2 = -0.05 # bias of the perceptron in the last layer
+    f = lambda a: a > 0 # activation function of the perceptrons (threshold function)
 
     # output of the two perceptrons in the first layer
     h1 = perceptron(x, w=w11, b=b11, f=f)
@@ -210,8 +238,8 @@ def test_xor():
     for x, y in zip(xs, ys):
         assert (
             xor(x) == y
-        ), f"xor function returned {xor(x)} for input {x}, but should be {y}"
-        print(f"XOR of {x} is {y}, your implementation returns {xor(x)}")
+        ), f"xor function returned {int(xor(x))} for input {x}, but should be {y}"
+        print(f"XOR of {x} is {y}, your implementation returns {int(xor(x))}")
     print("\nCongratulations! You have implemented the XOR function correctly.")
 
 
@@ -221,7 +249,7 @@ test_xor()
 """
 <div class="alert alert-block alert-success">
 <h2> Checkpoint 2 </h2>
-
+You have been introduced to the XOR gate and its view as a binary classification problem. You have also solved XOR using a two-layer perceptron.
 There are many ways to implement an XOR in a two-layer perceptron. We will review some of them and how we got to them (trial and error or pen and paper?).
     
 <br/>
@@ -320,9 +348,15 @@ def run_epoch(model, optimizer, X_train, y_train, batch_size, loss_fn, device):
 
         # Forward pass: pass the data through the model and retrieve the prediction
         y_pred = model(X_b).squeeze()
+        # Note: the .squeeze() method above removes dimensions of size 1, which is useful in this case as we are predicting a single value.
+        # Before squeezing, the shape would be (B, 1). After squeezing, it is (B,), which is the shape of our target values y_b.
+        # The inverse of .squeeze() is .unsqueeze(), which adds dimensions of size 1. This is useful when e.g. you want to add a batch dimension to a single sample, or a channel dimension in a single-channel image.
 
         # Compute the loss function with the prediction and the ground truth
         loss = loss_fn(y_pred, y_b)
+        # Note: even if a single number is returned, it is still a tensor with an associated computational graph (--> more memory used).
+        # Be extremely careful when using the loss tensor in other calculations (e.g. for monitoring issues), as it can lead to memory leaks and other errors.
+        # For those, you should always use the .item() method to convert to a native Python number (see the last comment of the function).
 
         # Backward pass: compute the gradient of the loss w.r.t. the parameters
         loss.backward()
@@ -331,7 +365,7 @@ def run_epoch(model, optimizer, X_train, y_train, batch_size, loss_fn, device):
         optimizer.step()
 
         # Accumulate the loss (for monitoring purposes)
-        total_loss += loss.item()
+        total_loss += loss.item() # the .item() converts the single-number Tensor to a Python floating point number, avoiding retaining the computational graph in the loss tensor
     return total_loss / n_samples
 
 
@@ -359,16 +393,21 @@ class BaselineModel(nn.Module):
         Note that this initializes the model architecture, but does not yet apply it to any data. This is done in the `forward` method.
         """
         super().__init__()
+
+        # The input to the next block is a tensor of size (B, 2), where 2 is the number of features.
+        # The block then sequentially applies a linear transformation, a non-linear activation function, another linear transformation, and another non-linear activation function.
+        # The output of the following block is a tensor of size (B, 1), where B is the batch size, which will be the predicted class of the input data.
         self.mlp = nn.Sequential(
-            nn.Linear(in_features=2, out_features=12, bias=True),
-            nn.Tanh(),
-            nn.Linear(in_features=12, out_features=1),
-            nn.Sigmoid(),
+            nn.Linear(in_features=2, out_features=12, bias=True), # this layer receives a tensor of size (B, 2) and returns a tensor of size (B, 12)
+            nn.Tanh(), # Tanh is a non-linear activation function that squashes the output to the range [-1, 1]
+            nn.Linear(in_features=12, out_features=1), # this layer receives a tensor of size (B, 12) and returns a tensor of size (B, 1)
+            nn.Sigmoid(), # Sigmoid is a non-linear activation function that squashes the output to the range [0, 1], widely used for binary classification
         )
+        # Note: the output of the block is a number between 0 and 1. In simplifying terms, you can think of it as "the probability of the input data belonging to class 1".
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """This method can be called to perform a forward pass of the model, i.e. `model.forward(x)`.
-           It is automatically called when the class instance is called as a function, i.e. `model(x)`, which is highly recommended.
+        """This method can be called to perform a forward pass of the model.
+           It is automatically called when the class instance is called as a function, i.e. `model(x)`, which is highly recommended (so, in general, don't use model.forward(x) but model(x)).
            In this example we have one module, but you can have multiple modules and combine them here.
 
         Args:
@@ -382,6 +421,7 @@ class BaselineModel(nn.Module):
 
 # Initialize the model, optimizer and set the loss function
 bad_model = BaselineModel()
+# The .to() method will move the model to the appropiate device (e.g. the GPU if available)
 bad_model.to(device)
 optimizer = torch.optim.SGD(
     bad_model.parameters(), lr=0.01
@@ -410,12 +450,16 @@ Now that we've trained the model, let's evaluate its performance on the testing 
 # %%
 def predict(model, X, y, batch_size, device):
     predictions = np.empty((0,))
-    model.eval()  # set the model to evaluation mode
-    with torch.inference_mode():
+    model.eval() # set the model to evaluation mode
+    with torch.inference_mode(): # this "context manager" is used to disable gradient computation (among others), which is not needed during inference and offers improved performance
         for X_b, y_b in batch_generator(X, y, batch_size, shuffle=False):
             X_b = torch.tensor(X_b, dtype=torch.float32, device=device)
             y_b = torch.tensor(y_b, dtype=torch.float32, device=device)
             y_pred = model(X_b).squeeze().detach().cpu().numpy()
+            # Note: the last chain of methods (in order) do: remove a unit dimension (.squeeze()),
+            # detach the tensor from the computational graph (.detach()),
+            # move it to the CPU (.cpu()),
+            # and convert it to a NumPy array (.numpy())
             predictions = np.concatenate((predictions, y_pred), axis=0)
     return np.round(predictions)
 
@@ -631,8 +675,8 @@ plot_classifiers(bad_model, good_model)
 
 <div class="alert alert-block alert-success">
 <h2> Checkpoint 3</h2>
-
-Let us know in the exercise channel when you got here and what accuracy your model achieved. We will compare different solutions and discuss why some of them are better than others. We will also discuss the generalization behaviour of the classifier outside of the domain it was trained on.
+You have now been introduced to PyTorch and trained a simple neural network on a binary classification problem. You have also seen how to visualize the decision function of the model, and what happens if the model is applied to a domain it had not seen during training.
+Let us know in the exercise channel when you got here and what accuracy your model achieved! We will compare different solutions and discuss why some of them are better than others. We will also discuss the generalization behaviour of the classifier outside of the domain it was trained on.
 
 Time: 60 working + 15 discussion
 </div>
@@ -1094,6 +1138,7 @@ show_samples(test_ds, "Testing Data", predictions=y_test_predicted, num_samples=
 <div class="alert alert-block alert-success">
 <h2> Checkpoint 4</h2>
 
+You reached the end, congratulations! In this last part, you have been introduced to CNNs as well as trained one on the infamous MNIST dataset for digit classification. 
 After 10 epochs, your model should achieve a training, validation, and test accuracy of more than 95%. We will use this checkpoint to discuss why we use training, validation, and testing datasets in practice.
 
 time: 65 working + 20 discussion
