@@ -56,7 +56,7 @@ Using only `numpy`, write a function `perceptron(x, w, b, f)` that returns `y` a
 * `x`: the input of the perceptron, a `numpy` array of shape `(n,)`
 * `w`: the weights of the perceptron, a `numpy` array of shape `(n,)`
 * `b`: a single scalar value for the bias
-* `f`: a nonlinear function $f: \mathbb{R}\mapsto\left{0, 1\right}$
+* `f`: a nonlinear function $f: \mathbb{R}\mapsto\{0, 1\}$
 
 Test your perceptron function on 2D inputs (i.e., `n=2`) and plot the result. Change the weights, bias, and the function $f$ and see how the output of the perceptron changes.
 """
@@ -179,7 +179,7 @@ Design a two layer perceptron using your `perceptron` function above that implem
 
 #### Hint
 
-A single layer in a multilayer perceptron can be described by the equation $y = f(x^\intercal w + b)$, where $f$ denotes a non-linear function, $b$ denotes the bias (a constant offset vector) and $w$ denotes a vector of weights. Since we are only interested in boolean outputs ($\left{0,1\right}$), a good choice for $f$ is the threshold function. Think about which kind of logical operations you can implement with a single perceptron, then see how you can combine them to create an XOR. It might help to write down the equation for a two layer perceptron network.
+A single layer in a multilayer perceptron can be described by the equation $y = f(x^\intercal w + b)$, where $f$ denotes a non-linear function, $b$ denotes the bias (a constant offset vector) and $w$ denotes a vector of weights. Since we are only interested in boolean outputs ($\{0,1\}$), a good choice for $f$ is the threshold function. Think about which kind of logical operations you can implement with a single perceptron, then see how you can combine them to create an XOR. It might help to write down the equation for a two layer perceptron network.
 """
 
 # %% tags=["task"]
@@ -1136,7 +1136,5 @@ show_samples(test_ds, "Testing Data", predictions=y_test_predicted, num_samples=
 
 You reached the end, congratulations! In this last part, you have been introduced to CNNs as well as trained one on the infamous MNIST dataset for digit classification. 
 After 10 epochs, your model should achieve a training, validation, and test accuracy of more than 95%. We will use this checkpoint to discuss why we use training, validation, and testing datasets in practice.
-
-time: 65 working + 20 discussion
 </div>
 """
