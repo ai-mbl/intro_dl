@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Create environment
-conda create -y -n 01_intro_dl python=3.9
+conda create -y -n 01_intro_dl python=3.11
 
 # Activate environment
 conda activate 01_intro_dl

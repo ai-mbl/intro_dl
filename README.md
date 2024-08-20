@@ -28,9 +28,5 @@ Please run the setup script to create the environment for this exercise.
 source setup.sh
 ```
 
-When you are ready to start the exercise run `jupyter lab`.
-```bash
-jupyter lab
-```
+You can now open the `exercise.ipynb` file in VSCode. Please make sure that the `Python` and `Jupyter` VSCode extensions are installed before proceeding with the exercise. When you are ready, simply follow the instructions in the notebook from the beginning.
 
-...and continue with the instructions in the notebook.

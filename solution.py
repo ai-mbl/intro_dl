@@ -15,8 +15,8 @@ In the following exercise we will explore the basic building blocks of deep lear
 In particular, we will:
 - Implement a perceptron and a 2-layer perceptron to compute the XOR function using NumPy.
 - Introduce PyTorch, a popular framework for deep learning.
-- Implement and train a simple neural network (a multi-layer perceptron) to classify points in a 2D plane using PyTorch.
-- Implement and train a simple deep convolutional neural network to classify hand-written digits from the MNIST dataset using PyTorch.
+- Implement and train a simple neural network (a multi-layer perceptron, or simply MLP) to classify points in a 2D plane using PyTorch.
+- Implement and train a simple convolutional neural network to classify hand-written digits from the MNIST dataset using PyTorch.
 - Discuss important topics in ML/DL, such as data splitting, under/overfitting and model generalization.
 
 <div class="alert alert-block alert-danger">
@@ -56,7 +56,7 @@ Using only `numpy`, write a function `perceptron(x, w, b, f)` that returns `y` a
 * `x`: the input of the perceptron, a `numpy` array of shape `(n,)`
 * `w`: the weights of the perceptron, a `numpy` array of shape `(n,)`
 * `b`: a single scalar value for the bias
-* `f`: a nonlinear function $f: \mathbb{R}\mapsto\mathbb{R}$
+* `f`: a nonlinear function $f: \mathbb{R}\mapsto\left{0, 1\right}$
 
 Test your perceptron function on 2D inputs (i.e., `n=2`) and plot the result. Change the weights, bias, and the function $f$ and see how the output of the perceptron changes.
 """
@@ -70,6 +70,10 @@ def non_linearity(a):
 
 # %% tags=["solution"]
 def non_linearity(a):
+    """This non-linearity is called the step function.
+       NOTE: this function is not differentiable, and thus
+       is not cannot be used in gradient descent.
+    """
     return a > 0
 
 
@@ -116,9 +120,7 @@ plot_perceptron(w=[1.0, -1.0], b=-0.1, f=non_linearity)
 <div class="alert alert-block alert-success">
 <h2> Checkpoint 1 </h2>
 You have implemented a perceptron using basic Python and NumPy functions, as well as checked what the perceptron decision boundary looks like.
-We will now go over different ways to implement the perceptron together and discuss their efficiency. If you arrived here earlier, feel free to play around with the parameters of the perceptron (the weights and bias) as well as the activation function `f`.
-
-Time: 20 working, + 10 discussion
+We will now go over different ways to implement the perceptron together and discuss their efficiency. If you arrived here earlier, feel free to play around with the parameters of the perceptron (the weights and bias) as well as the activation function <code>f</code>.
 </div>
 """
 
@@ -177,9 +179,8 @@ Design a two layer perceptron using your `perceptron` function above that implem
 
 #### Hint
 
-A single layer in a multilayer perceptron can be described by the equation $y = f(x^\intercal w + b)$ with $f$ a nonlinear function. $b$ is the so called bias (a constant offset vector) and $w$ a vector of weights. Since we are only interested in outputs of `0` or `1`, a good choice for $f$ is the threshold function. Think about which kind of logical operations you can implement with a single perceptron, then see how you can combine them to create an XOR. It might help to write down the equation for a two layer perceptron network.
+A single layer in a multilayer perceptron can be described by the equation $y = f(x^\intercal w + b)$, where $f$ denotes a non-linear function, $b$ denotes the bias (a constant offset vector) and $w$ denotes a vector of weights. Since we are only interested in boolean outputs ($\left{0,1\right}$), a good choice for $f$ is the threshold function. Think about which kind of logical operations you can implement with a single perceptron, then see how you can combine them to create an XOR. It might help to write down the equation for a two layer perceptron network.
 """
-
 
 # %% tags=["task"]
 def xor(x):
@@ -254,8 +255,6 @@ There are many ways to implement an XOR in a two-layer perceptron. We will revie
     
 <br/>
 If you arrive here early, think about how to generalize the XOR function to an arbitrary number of inputs. For more than two inputs, the XOR returns True if the number of 1s in the inputs is odd, and False otherwise.
-
-Time: 30 working + 15 min discussion
 </div>
 """
 # %% [markdown]
@@ -580,7 +579,6 @@ for epoch in (pbar := tqdm(range(num_epochs), total=num_epochs, desc="Training")
     # Update the progress bar to display the training loss
     pbar.set_postfix({"training loss": curr_loss})
 
-good_model.eval()
 good_predictions = predict(good_model, X_test, y_test, batch_size, device)
 good_accuracy = accuracy(good_predictions, y_test)
 
@@ -677,8 +675,6 @@ plot_classifiers(bad_model, good_model)
 <h2> Checkpoint 3</h2>
 You have now been introduced to PyTorch and trained a simple neural network on a binary classification problem. You have also seen how to visualize the decision function of the model, and what happens if the model is applied to a domain it had not seen during training.
 Let us know in the exercise channel when you got here and what accuracy your model achieved! We will compare different solutions and discuss why some of them are better than others. We will also discuss the generalization behaviour of the classifier outside of the domain it was trained on.
-
-Time: 60 working + 15 discussion
 </div>
 """
 
@@ -700,7 +696,7 @@ Instead of feeding the image as one long vector into a fully connected network (
 
 However, the output of our network will be a 10-dimensional vector, indicating the probabilities for the input to be one of ten classes (corresponding to the digits 0 to 9). For that, we will use fully connected layers at the end of our network, once the dimensionality of a feature map is small enough to capture high-level information.
 
-In principle, we could just use convolutional layers to reduce the size of each feature map by 2 until one feature map is small enough to allow using a fully connected layer. However, it is good practice to have a convolutional layer followed by a so-called downsampling layer, which effectively reduces the size of the feature map by the downsampling factor.
+In principle, we could just use convolutional layers to reduce the size of each feature map by 2 until one feature map is small enough to allow using a fully connected layer. However, in many network architectures, you will find a convolutional layer followed by a so-called downsampling layer, which effectively reduces the size of the feature map by the downsampling factor. Whether a downsampling layer will be beneficial or not depends mostly on the specific problem to be dealt with.
 """
 
 
@@ -715,10 +711,10 @@ from torchvision.datasets import MNIST
 from torchvision import transforms
 
 all_train_ds = MNIST(
-    root=".mnist", train=True, download=True, transform=transforms.ToTensor()
+    root="mnist_data", train=True, download=True, transform=transforms.ToTensor()
 )
 test_ds = MNIST(
-    root=".mnist", train=False, download=True, transform=transforms.ToTensor()
+    root="mnist_data", train=False, download=True, transform=transforms.ToTensor()
 )
 
 # %% [markdown]
