@@ -16,7 +16,7 @@ In particular, we will:
 - Implement a perceptron and a 2-layer perceptron to compute the XOR function using NumPy.
 - Introduce PyTorch, a popular framework for deep learning.
 - Implement and train a simple neural network (a multi-layer perceptron, or simply MLP) to classify points in a 2D plane using PyTorch.
-- Implement and train a simple convolutional neural network to classify hand-written digits from the MNIST dataset using PyTorch.
+- Implement and train a simple convolutional neural network (CNN) to classify hand-written digits from the MNIST dataset using PyTorch.
 - Discuss important topics in ML/DL, such as data splitting, under/overfitting and model generalization.
 
 <div class="alert alert-block alert-danger">
@@ -25,6 +25,8 @@ In particular, we will:
         <td><img src="attachments/kernel-change.png" width="100%"/></td>
     </tr>
 </div>
+
+Places where you need to write code are marked with a <code>%# TASK: ...</code> comment.
 
 ### Acknowledgements
 
@@ -51,7 +53,7 @@ As we saw in the lecture ["Introduction to Deep Learning"](intro_dl_lecture.pdf)
     <b>Task 1</b>: Implement a Perceptron Function
 </div>
 
-Using only `numpy`, write a function `perceptron(x, w, b, f)` that returns `y` as computed by a perceptron, for arbitrary inputs `x` of dimension `n`. The arguments of your function should be:
+Using only `numpy` and internal Python functions, write a function `perceptron(x, w, b, f)` that returns `y` as computed by a perceptron, for arbitrary inputs `x` of dimension `n`. The arguments of your function should be:
 
 * `x`: the input of the perceptron, a `numpy` array of shape `(n,)`
 * `w`: the weights of the perceptron, a `numpy` array of shape `(n,)`
@@ -65,7 +67,9 @@ Test your perceptron function on 2D inputs (i.e., `n=2`) and plot the result. Ch
 # %% tags=["task"]
 def non_linearity(a):
     """Implement your non-linear function here."""
+    # TASK: make the function return a non-linearity that maps the input to 0 or 1
     return
+    # END OF TASK
 
 
 # %% tags=["solution"]
@@ -80,7 +84,9 @@ def non_linearity(a):
 # %% tags=["task"]
 def perceptron(x, w, b, f):
     """Implement your perceptron here."""
+    # TASK: make this function return the output of a perceptron
     return
+    # END OF TASK
 
 
 # %% tags=["solution"]
@@ -492,7 +498,7 @@ Hint: some commonly used losses are `nn.BCELoss()` (binary crossentropy loss), `
 class GoodModel(nn.Module):
     def __init__(self):
         super().__init__()
-        # TASK
+        # TASK: define the architecture of your model
         self.mlp = nn.Sequential(
             # add your layers and activation functions here
         )
@@ -814,7 +820,7 @@ Each layer above has a corresponding `torch` implementation (e.g., a convolution
 <div class="alert alert-block alert-warning">
     <b>Question:</b>
     PyTorch requires explicitly giving the number of input features/channels to each Linear/Conv2D layer. Therefore, you need to know the number of input features/channels for those layers.
-    What is the number of input features/channels for each layer in the CNN described above? Take particular care with the number of input features in the first fully connected layer (after flattening). You can assume the convolutional layers will preserve the input spatial size (thanks to the `padding=1`). Downsampling operations do not change the number of channels/feature maps, they simply reduce the spatial size by the pooling factor. 
+    What is the number of input features/channels for each layer in the CNN described above? Take particular care with the number of input features in the first fully connected layer (after flattening). You can assume the convolutional layers will preserve the input spatial size (thanks to the <code>padding=1</code>). Downsampling operations do not change the number of channels/feature maps, they simply reduce the spatial size by the pooling factor.
 </div>
 """
 
@@ -824,7 +830,7 @@ class CNNModel(nn.Module):
     def __init__(self):
         super().__init__()
 
-        # TASK: define the layers of the model
+        # TASK: define the different layers of the model
         self.conv = nn.Sequential(
             # Add here the convolutional and downsampling layers,
             # as well as the flattening module
@@ -1134,7 +1140,7 @@ show_samples(test_ds, "Testing Data", predictions=y_test_predicted, num_samples=
 <div class="alert alert-block alert-success">
 <h2> Checkpoint 4</h2>
 
-You reached the end, congratulations! In this last part, you have been introduced to CNNs as well as trained one on the infamous MNIST dataset for digit classification. 
+You reached the end, congratulations! In this last part, you have been introduced to CNNs as well as trained one on the widely known MNIST dataset for digit classification.
 After 10 epochs, your model should achieve a training, validation, and test accuracy of more than 95%. We will use this checkpoint to discuss why we use training, validation, and testing datasets in practice.
 </div>
 """
