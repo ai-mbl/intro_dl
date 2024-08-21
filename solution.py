@@ -76,7 +76,7 @@ def non_linearity(a):
 def non_linearity(a):
     """This non-linearity is called the step function.
        NOTE: this function is not differentiable, and thus
-       is not cannot be used in gradient descent.
+       it not cannot be used in gradient descent.
     """
     return a > 0
 
