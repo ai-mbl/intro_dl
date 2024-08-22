@@ -26,7 +26,7 @@ In particular, we will:
     </tr>
 </div>
 
-Places where you need to write code are marked with a <code>%# TASK: ...</code> comment.
+Places where you need to write code are marked with a <code># TASK: ...</code> comment.
 
 ### Acknowledgements
 
@@ -319,7 +319,9 @@ plot_points([X_train, X_test], [y_train, y_test], ["Training Data", "Testing Dat
 
 # %% [markdown]
 """
-We will start with a simple baseline model. But first, we will explicitly write the training loop (required by vanilla PyTorch), which you have gone through in the lecture. Comments in the code will help you identify the different steps involved.
+As you can see in the snippet above, we generate the data using NumPy. However, we will use PyTorch to train the network. PyTorch provides a data structure called `Tensor` which is similar to NumPy's `ndarray`, but with additional features that make it suitable for deep learning. Converting NumPy arrays to torch tensors and vice versa is very straightforward, and many operations share the same syntax, as you will see in the next code snippets.
+
+We will start with a simple baseline model. But before that, we will explicitly write code for the training loop (required by vanilla PyTorch). Try to identify and understand each step! Comments in the code will help you identify the different steps involved.
 """
 
 # %%
