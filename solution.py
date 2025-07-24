@@ -50,7 +50,9 @@ plt.rcParams["figure.figsize"] = (5, 5) # this line sets the default size of plo
 As we saw in the lecture ["Introduction to Deep Learning"](intro_dl_lecture.pdf), a perceptron is a simple unit that combines its inputs $x_i$ in a linear fashion (using weights $w_i$ and a bias $b$), followed by a non-linear function $f$.
 
 <div class="alert alert-block alert-info">
-    <b>Task 1</b>: Implement a Perceptron Function
+    <h2>Task 1</h2>
+    
+Implement a Perceptron Function
 </div>
 
 Using only `numpy` and internal Python functions, write a function `perceptron(x, w, b, f)` that returns `y` as computed by a perceptron, for arbitrary inputs `x` of dimension `n`. The arguments of your function should be:
@@ -93,6 +95,32 @@ def perceptron(x, w, b, f):
 def perceptron(x, w, b, f):
     return f(np.sum(x * w) + b)
 
+#%% [markdown]
+"""
+**Task 1b:** re-implement the perceptron function using PyTorch
+
+Many modern deep learning applications are built using [PyTorch](https://docs.pytorch.org/tutorials/), a popular deep learning framework.
+PyTorch provides a data structure called `Tensor` which is similar to NumPy's `ndarray`, but with additional features that make it suitable for deep learning.
+Converting NumPy arrays to torch tensors and vice versa is very straightforward, and many operations share the same syntax.
+
+One important distinction is that the inputs to PyTorch functions must be `torch.Tensor` objects. You can easily convert a Numpy array, Python list,
+or a Python scalar to a `torch.Tensor` using the `torch.tensor()` function.
+"""
+# %% tags=["task"]
+import torch
+def perceptron_torch(x, w, b, f):
+    """Implement your perceptron here using PyTorch."""
+    # TASK: make this function return the output of a perceptron
+    return
+    # END OF TASK
+
+# %% tags=["solution"]
+import torch
+def perceptron_torch(x, w, b, f):
+    x = torch.tensor(x)
+    w = torch.tensor(w)
+    b = torch.tensor(b) 
+    return f(torch.sum(x * w) + b)
 
 # %%
 def plot_perceptron(w, b, f):
@@ -319,7 +347,7 @@ plot_points([X_train, X_test], [y_train, y_test], ["Training Data", "Testing Dat
 
 # %% [markdown]
 """
-As you can see in the snippet above, we generate the data using NumPy. However, we will use PyTorch to train the network. PyTorch provides a data structure called `Tensor` which is similar to NumPy's `ndarray`, but with additional features that make it suitable for deep learning. Converting NumPy arrays to torch tensors and vice versa is very straightforward, and many operations share the same syntax, as you will see in the next code snippets.
+As you can see in the snippet above, we generate the data using NumPy. However, we will use PyTorch to train the network. 
 
 We will start with a simple baseline model. But before that, we will explicitly write code for the training loop (required by vanilla PyTorch). Try to identify and understand each step! Comments in the code will help you identify the different steps involved.
 """
