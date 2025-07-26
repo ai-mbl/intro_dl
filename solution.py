@@ -13,8 +13,8 @@
 
 In the following exercise we will explore the basic building blocks of deep learning: the perceptron and how to stack multiple perceptrons together into layers to build a neural network. We will also introduce convolutional neural networks (CNNs) for image classification.
 In particular, we will:
-- Implement a perceptron and a 2-layer perceptron to compute the XOR function using NumPy.
 - Introduce PyTorch, a popular framework for deep learning.
+- Implement a perceptron and a 2-layer perceptron to compute the XOR function using PyTorch.
 - Implement and train a simple neural network (a multi-layer perceptron, or simply MLP) to classify points in a 2D plane using PyTorch.
 - Implement and train a simple convolutional neural network (CNN) to classify hand-written digits from the MNIST dataset using PyTorch.
 - Discuss important topics in ML/DL, such as data splitting, under/overfitting and model generalization.
