@@ -36,18 +36,68 @@ The original notebook was created by Nils Eckstein, Julia Buhmann, and Jan Funke
 # %%
 import matplotlib.pyplot as plt
 import numpy as np
+import torch
 
 plt.rcParams["figure.figsize"] = (5, 5) # this line sets the default size of plots
 
 # %% [markdown]
 """
-## Part 1: Perceptrons
+
+## Part 1: PyTorch Tensors
+
+Many modern deep learning applications are built using [PyTorch](https://docs.pytorch.org/tutorials/), a popular deep learning framework.
+PyTorch provides a data structure called `Tensor` which is similar to NumPy's `ndarray`, but with additional features that make it suitable for deep learning.
+Converting NumPy arrays to torch tensors and vice versa is very straightforward, and many operations share the same syntax.
+
+One important distinction is that the inputs to PyTorch functions must be `torch.Tensor` objects. You can easily convert a Numpy array, Python list, or a Python scalar to a `torch.Tensor` using the `torch.tensor()` function.
+"""
+
+# %%
+x_np = np.random.randn(256,512) # Generate a random numpy array of shape (256,512)
+print(type(x_np)) # Should be 'numpy.ndarray'
+x_torch = torch.tensor(x_np)
+print(type(x_torch)) # Should be 'torch.Tensor'
+
+# %% [markdown]
+"""
+Torch tensors can also be easily converted to a NumPy arrays. This is important as many existing utility functions, e.g for plotting, might not work properly with tensors, but will surely do with NumPy arrays.
+"""
+
+# %%
+x_np_back = x_torch.numpy()
+print(type(x_np_back))
+
+# %% [markdown]
+"""
+Furthermore, many operations on PyTorch tensors share a similar syntax to operations on NumPy arrays, e.g.:
+"""
+
+# %%
+x_np_sum = np.sum(x_np)
+x_torch_sum = torch.sum(x_torch)
+print(x_np_sum, x_torch_sum) # should be equal
+
+
+# %% [markdown]
+"""
+The output of a torch function is usually also a torch Tensor, even if it contains only a single scalar value. For single value arrays, we can convert to a Python type like `int` or `float` using the tensor method `.item()`. This will become important later :)
+"""
+
+# %%
+x_sum = x_torch_sum.item()
+print(type(x_sum), x_sum)
+
+
+# %% [markdown]
+"""
+## Part 2: the perceptron
+
+As we saw in the lecture ["Introduction to Deep Learning"](intro_dl_lecture.pdf), a perceptron is a simple unit that combines its inputs $x_i$ in a linear fashion (using weights $w_i$ and a bias $b$), followed by a non-linear function $f$.
 
 <div>
     <img src="attachments/perceptron.png" width="600"/>
 </div>
 
-As we saw in the lecture ["Introduction to Deep Learning"](intro_dl_lecture.pdf), a perceptron is a simple unit that combines its inputs $x_i$ in a linear fashion (using weights $w_i$ and a bias $b$), followed by a non-linear function $f$.
 
 <div class="alert alert-block alert-info">
     <h2>Task 1</h2>
@@ -55,10 +105,10 @@ As we saw in the lecture ["Introduction to Deep Learning"](intro_dl_lecture.pdf)
 Implement a Perceptron Function
 </div>
 
-Using only `numpy` and internal Python functions, write a function `perceptron(x, w, b, f)` that returns `y` as computed by a perceptron, for arbitrary inputs `x` of dimension `n`. The arguments of your function should be:
+Using `PyTorch` and internal Python functions, write a function `perceptron(x, w, b, f)` that returns `y` as computed by a perceptron, for arbitrary inputs `x` of dimension `n`. The arguments of your function should be:
 
-* `x`: the input of the perceptron, a `numpy` array of shape `(n,)`
-* `w`: the weights of the perceptron, a `numpy` array of shape `(n,)`
+* `x`: the input of the perceptron, a torch tensor of shape `(n,)`
+* `w`: the weights of the perceptron, a `torch tensor of shape `(n,)`
 * `b`: a single scalar value for the bias
 * `f`: a nonlinear function $f: \mathbb{R}\mapsto\{0, 1\}$
 
@@ -68,7 +118,11 @@ Test your perceptron function on 2D inputs (i.e., `n=2`) and plot the result. Ch
 
 # %% tags=["task"]
 def non_linearity(a):
-    """Implement your non-linear function here."""
+    """Implement your non-linear function here, which should return either 0 or 1. Returning False or True is also OK.
+
+       HINT: Remember that torch operations usually yield torch tensors.
+             In this case we want the output not to be a tensor, but the _item_s they contain ;)
+    """
     # TASK: make the function return a non-linearity that maps the input to 0 or 1
     return
     # END OF TASK
@@ -80,7 +134,7 @@ def non_linearity(a):
        NOTE: this function is not differentiable, and thus
        it not cannot be used in gradient descent.
     """
-    return a > 0
+    return (a > 0).item()
 
 
 # %% tags=["task"]
@@ -93,34 +147,8 @@ def perceptron(x, w, b, f):
 
 # %% tags=["solution"]
 def perceptron(x, w, b, f):
-    return f(np.sum(x * w) + b)
-
-#%% [markdown]
-"""
-**Task 1b:** re-implement the perceptron function using PyTorch
-
-Many modern deep learning applications are built using [PyTorch](https://docs.pytorch.org/tutorials/), a popular deep learning framework.
-PyTorch provides a data structure called `Tensor` which is similar to NumPy's `ndarray`, but with additional features that make it suitable for deep learning.
-Converting NumPy arrays to torch tensors and vice versa is very straightforward, and many operations share the same syntax.
-
-One important distinction is that the inputs to PyTorch functions must be `torch.Tensor` objects. You can easily convert a Numpy array, Python list,
-or a Python scalar to a `torch.Tensor` using the `torch.tensor()` function.
-"""
-# %% tags=["task"]
-import torch
-def perceptron_torch(x, w, b, f):
-    """Implement your perceptron here using PyTorch."""
-    # TASK: make this function return the output of a perceptron
-    return
-    # END OF TASK
-
-# %% tags=["solution"]
-import torch
-def perceptron_torch(x, w, b, f):
-    x = torch.tensor(x)
-    w = torch.tensor(w)
-    b = torch.tensor(b) 
     return f(torch.sum(x * w) + b)
+
 
 # %%
 def plot_perceptron(w, b, f):
@@ -138,6 +166,9 @@ def plot_perceptron(w, b, f):
     ) # create a grid of equispaced points in the domain
 
     xs = np.array([domain[0].flatten(), domain[1].flatten()]).T # format the points as a list of 2D points to evaluate the perceptron on
+    xs = torch.tensor(xs) # convert the NumPy array to pytorch tensor
+    w = torch.tensor(w) # convert the weights to a pytorch tensor
+    b = torch.tensor(b) # convert the bias to a pytorch tensor 
 
     values = np.array([perceptron(x, w, b, f) for x in xs]) # evaluate the perceptron on each point in the grid
 
@@ -153,7 +184,7 @@ plot_perceptron(w=[1.0, -1.0], b=-0.1, f=non_linearity)
 """
 <div class="alert alert-block alert-success">
 <h2> Checkpoint 1 </h2>
-You have implemented a perceptron using basic Python and NumPy functions, as well as checked what the perceptron decision boundary looks like.
+You have implemented a perceptron using basic PyTorch functions, as well as checked what the perceptron decision boundary looks like.
 We will now go over different ways to implement the perceptron together and discuss their efficiency. If you arrived here earlier, feel free to play around with the parameters of the perceptron (the weights and bias) as well as the activation function <code>f</code>.
 </div>
 """
@@ -227,22 +258,26 @@ def xor(x):
     # as w2 and b2. Change their values below such that the whole network implements
     # the XOR function. You will also have to change the activation function f used
     # for the perceptrons (which currently is the identity).
+    
 
-    # TASK: set the weights, biases and activation function of the perceptrons
-    w11 = [0.0, 0.0] # weights of the first perceptron in the first layer
-    b11 = 0.0 # bias of the first perceptron in the first layer
-    w12 = [0.0, 0.0] # weights of the second perceptron in the first layer
-    b12 = 0.0 # bias of the second perceptron in the first layer
-    w2 = [0.0, 0.0] # weights of the perceptron in the last layer
-    b2 = 0.0 # bias of the perceptron in the last layer
-    f = lambda a: a # activation function of the perceptrons.
+    # TASK: set the weights and biases of the perceptrons
+    w11 = torch.tensor([0.0, 0.0]) # weights of the first perceptron in the first layer
+    b11 = torch.tensor(0.0) # bias of the first perceptron in the first layer
+    w12 = torch.tensor([0.0, 0.0]) # weights of the second perceptron in the first layer
+    b12 = torch.tensor(0.0) # bias of the second perceptron in the first layer
+    w2 = torch.tensor([0.0, 0.0]) # weights of the perceptron in the last layer
+    b2 = torch.tensor(0.0) # bias of the perceptron in the last layer
     # END OF TASK
 
+
+    # convert x to a torch tensor for the perceptron function
+    x_tensor = torch.tensor(x)
+
     # output of the two perceptrons in the first layer
-    h1 = perceptron(x, w=w11, b=b11, f=f)
-    h2 = perceptron(x, w=w12, b=b12, f=f)
+    h1 = perceptron(x_tensor, w=w11, b=b11, f=non_linearity)
+    h2 = perceptron(x_tensor, w=w12, b=b12, f=non_linearity)
     # output of the perceptron in the last layer
-    y = perceptron(np.array([h1, h2]), w=w2, b=b2, f=f)  # h1 AND NOT h2
+    y = perceptron(torch.tensor([h1, h2]), w=w2, b=b2, f=non_linearity)  # h1 AND NOT h2
 
     return y
 
@@ -250,19 +285,19 @@ def xor(x):
 # %% tags=["solution"]
 def xor(x):
     # SOLUTION
-    w11 = [0.1, 0.1] # weights of the first perceptron in the first layer
-    b11 = -0.05 # bias of the first perceptron in the first layer
-    w12 = [0.1, 0.1] # weights of the second perceptron in the first layer
-    b12 = -0.15 # bias of the second perceptron in the first layer
-    w2 = [0.1, -0.1] # weights of the perceptron in the last layer
-    b2 = -0.05 # bias of the perceptron in the last layer
-    f = lambda a: a > 0 # activation function of the perceptrons (threshold function)
+    w11 = torch.tensor([0.1, 0.1]) # weights of the first perceptron in the first layer
+    b11 = torch.tensor(-0.05) # bias of the first perceptron in the first layer
+    w12 = torch.tensor([0.1, 0.1]) # weights of the second perceptron in the first layer
+    b12 = torch.tensor(-0.15) # bias of the second perceptron in the first layer
+    w2 = torch.tensor([0.1, -0.1]) # weights of the perceptron in the last layer
+    b2 = torch.tensor(-0.05) # bias of the perceptron in the last layer
 
+    x_tensor = torch.tensor(x) # convert x to a torch tensor for the perceptron function
     # output of the two perceptrons in the first layer
-    h1 = perceptron(x, w=w11, b=b11, f=f)
-    h2 = perceptron(x, w=w12, b=b12, f=f)
+    h1 = perceptron(x_tensor, w=w11, b=b11, f=non_linearity)
+    h2 = perceptron(x_tensor, w=w12, b=b12, f=non_linearity)
     # output of the perceptron in the last layer
-    y = perceptron(np.array([h1, h2]), w=w2, b=b2, f=f)  # h1 AND NOT h2
+    y = perceptron(torch.tensor([h1, h2]), w=w2, b=b2, f=non_linearity)  # h1 AND NOT h2
 
     return y
 
@@ -353,9 +388,6 @@ We will start with a simple baseline model. But before that, we will explicitly 
 """
 
 # %%
-import torch
-
-
 def batch_generator(X, y, batch_size, shuffle=True):
     if shuffle:
         # Shuffle the data at each epoch
@@ -461,7 +493,7 @@ bad_model.to(device)
 optimizer = torch.optim.SGD(
     bad_model.parameters(), lr=0.01
 )  # SGD - Stochastic Gradient Descent
-loss_fn = nn.MSELoss(reduction="sum")  # MSELoss - Mean Squared Error Loss
+loss_fn = nn.MSELoss(reduction="mean")  # MSELoss - Mean Squared Error Loss
 
 batch_size = 10
 num_epochs = 1500
@@ -545,7 +577,7 @@ good_model.to(device)
 # TASK: set the optimizer and the loss function
 optimizer = None  # Remember to instantiate the class with the model parameters and the learning rate
 loss_fn = (
-    None  # Remember to instantiate the class with the reduction parameter set to "sum"
+    None  # Remember to instantiate the class with the reduction parameter set to "mean"
 )
 
 assert optimizer is not None, "Please set the optimizer!"
@@ -598,7 +630,7 @@ good_model.to(device)
 
 # SOLUTION
 optimizer = torch.optim.AdamW(good_model.parameters(), lr=0.001)
-loss_fn = nn.BCELoss(reduction="sum")  # Binary Cross Entropy Loss
+loss_fn = nn.BCELoss(reduction="mean")  # Binary Cross Entropy Loss
 
 
 batch_size = 10
@@ -1056,7 +1088,7 @@ def live_training_plot(
 We are now ready to train the network!
 
 Instantiate and fit your `cnn_model` similar to how you did for the spiral classifier above, but this time:
-* use `nn.CrossEntropyLoss` as the loss, with `reduction="sum"`
+* use `nn.CrossEntropyLoss` as the loss, with `reduction="mean"`
 * use `torch.optim.AdamW` as the optimizer, with learning rate `lr=0.001`
 * set a batch size of 128 samples
 * train for 10 epochs
@@ -1070,6 +1102,7 @@ cnn_model.to(device)
 # TASK: set the optimizer, loss function, batch size and number of epochs
 optimizer = None
 loss_fn = None
+
 batch_size = None
 num_epochs = None
 # END OF TASK
@@ -1085,19 +1118,20 @@ train_dataloader = torch.utils.data.DataLoader(
 val_dataloader = torch.utils.data.DataLoader(
     val_ds, batch_size=batch_size, shuffle=False, pin_memory=True
 )
+train_losses, val_losses = [], []
+train_accs, val_accs = [], []
 
-for epoch in (pbar := tqdm(range(num_epochs), desc="Training", total=num_epochs)):
+for epoch in range(num_epochs):
     train_loss, train_acc = run_epoch(
         cnn_model, optimizer, train_dataloader, loss_fn, device
     )
     val_loss, val_acc = validate(cnn_model, val_dataloader, loss_fn, device)
-    pbar.set_postfix(
-        {
-            "train_loss": train_loss,
-            "val_loss": val_loss,
-            "train_acc": train_acc,
-            "val_acc": val_acc,
-        }
+    train_losses.append(train_loss)
+    val_losses.append(val_loss)
+    train_accs.append(train_acc)
+    val_accs.append(val_acc)
+    live_training_plot(
+        train_losses, val_losses, train_accs, val_accs, num_epochs, figsize=(10, 5)
     )
 
 # %% tags=["solution"]
@@ -1106,10 +1140,16 @@ cnn_model.to(device)
 
 
 optimizer = torch.optim.AdamW(cnn_model.parameters(), lr=0.001)
-loss_fn = nn.CrossEntropyLoss(reduction="sum")
+loss_fn = nn.CrossEntropyLoss(reduction="mean")
 
 batch_size = 128
 num_epochs = 10
+
+
+assert optimizer is not None, "Please set the optimizer!"
+assert loss_fn is not None, "Please set the loss function!"
+assert batch_size is not None, "Please set the batch size!"
+assert num_epochs is not None, "Please set the number of epochs!"
 
 train_dataloader = torch.utils.data.DataLoader(
     train_ds, batch_size=batch_size, shuffle=True, pin_memory=True
