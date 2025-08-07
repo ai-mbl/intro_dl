@@ -3,11 +3,11 @@
 # Create environment
 conda create -y -n 01_intro_dl python=3.11
 
-# Activate environment
-conda activate 01_intro_dl
-
 # Install dependencies
-conda install -y matplotlib jupyter tqdm
-conda install -y pytorch torchvision pytorch-cuda=12.1 -c pytorch -c nvidia
+conda install -y matplotlib jupyter tqdm --name 01_intro_dl
 
-conda activate base
+# Install PyTorch
+ENV_PATH=$(conda info --envs | grep 01_intro_dl | awk '{print $NF}')
+$ENV_PATH/bin/pip install "torch"
+$ENV_PATH/bin/pip install "torchvision"
+
