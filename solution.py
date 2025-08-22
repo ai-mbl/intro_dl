@@ -387,15 +387,13 @@ As you can see in the snippet above, we generate the data using NumPy. However, 
 Before continuing, you should know that PyTorch is object-oriented (OOP) and follows specific class structures. If you are not too familiar with Python or OOP, it may be a bit tricky to understand the structure at first, and what executes when. Don't despair! Getting the grasp on it is easier than it seems. Here we will focus on getting the basics and the architecture of the model right, so most of the boilerplate work will be already lifted.
 
 First, it is common to work with PyTorch datasets when training models. PyTorch datasets are utility classes that are used to manage training/validation data in a way that is compatible with PyTorch's data loading and processing pipelines.
-They provide a convenient way to access and manipulate the data, and they integrate seamlessly with PyTorch's DataLoader class, which is used to load data in batches during training. There's many advantages to using Dataset/DataLoaders, including speed.
+They provide a convenient way to access and manipulate the data, and they integrate seamlessly with PyTorch's DataLoader class. DataLoader instances are used to access the Dataset samples in batches during training time. While Datasets and DataLoaders are related (in fact, a DataLoader needs a Dataset to exist), datasets and dataloaders are not the same thing! There's many advantages to using Dataset/DataLoaders when training models, including speed, scalability and flexibility.
 
-Here we will create for you a SpiralDataset object to represent our spiral data. Read the following code snippet and try to understand the involved functions and the class structure:  
+Here we will create for you a very simple SpiralDataset object to represent our spiral data. Read the following code snippet and try to understand the involved functions and the class structure.
 """
 
 # %%
-from torch.utils.data import Dataset
-
-class SpiralDataset(Dataset):
+class SpiralDataset(torch.utils.data.Dataset):
     def __init__(self, x, y):
         """
         This method (:= `constructor`) is automatically called when the class instance is created, i.e. `dataset = SpiralDataset(x, y)`
@@ -432,7 +430,11 @@ train_dataset = SpiralDataset(X_train, y_train)
 
 # %% [markdown]
 """
-We will start with a simple baseline model. But before that, we will explicitly write code for the training loop (required by vanilla PyTorch). Try to identify and understand each step! Comments in the code will help you identify the different steps involved.
+Note that in general, when writing a new Dataset, one mostly needs to implement 3 methods of the class: `__init__`, `__len__` and `__getitem__`. The first method initializes the object, the second method returns the length/number of samples in the dataset and the third one implements the logic to retrieve one sample of the dataset.
+While the example above is very simple, this can get extremely complex and many design choices in your dataset can have big effects. For example, for very large datasets, one might want to load each sample in the `__getitem__` method instead of loading the entire dataset into memory at once in the `__init__` method, at the cost of some performance.
+
+
+Having our dataset ready, we are almost ready to start with a simple baseline model. But before that, we will explicitly write code for the training loop (required by vanilla PyTorch). Try to identify and understand each step! Comments in the code will help you identify the different steps involved.
 
 """
 # %%
@@ -442,6 +444,8 @@ def run_epoch(model, optimizer, train_dataloader, loss_fn, device):
 
     # Set the model to training mode, essential when using certain layers
     model.train()
+
+    # Iterate over the training dataloader, which yields batches of data
     for batch in train_dataloader:
         # Move the data to the computing device (CPU/GPU)
         X_b = batch["x"].to(device)
