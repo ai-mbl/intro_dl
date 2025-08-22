@@ -224,7 +224,7 @@ def plot_xor_data():
     """
     xs, ys = generate_xor_data()
     for x, y in zip(xs, ys):
-        plt.scatter(*x, color="green" if y else "red")
+        plt.scatter(*x, color="blue" if y else "red")
     
     plt.xticks([0, 1])
     plt.yticks([0, 1])
@@ -384,31 +384,72 @@ plot_points([X_train, X_test], [y_train, y_test], ["Training Data", "Testing Dat
 """
 As you can see in the snippet above, we generate the data using NumPy. However, we will use PyTorch to train the network. 
 
-We will start with a simple baseline model. But before that, we will explicitly write code for the training loop (required by vanilla PyTorch). Try to identify and understand each step! Comments in the code will help you identify the different steps involved.
+Before continuing, you should know that PyTorch is object-oriented (OOP) and follows specific class structures. If you are not too familiar with Python or OOP, it may be a bit tricky to understand the structure at first, and what executes when. Don't despair! Getting the grasp on it is easier than it seems. Here we will focus on getting the basics and the architecture of the model right, so most of the boilerplate work will be already lifted.
+
+First, it is common to work with PyTorch datasets when training models. PyTorch datasets are utility classes that are used to manage training/validation data in a way that is compatible with PyTorch's data loading and processing pipelines.
+They provide a convenient way to access and manipulate the data, and they integrate seamlessly with PyTorch's DataLoader class. DataLoader instances are used to access the Dataset samples in batches during training time. While Datasets and DataLoaders are related (in fact, a DataLoader needs a Dataset to exist), datasets and dataloaders are not the same thing! There's many advantages to using Dataset/DataLoaders when training models, including speed, scalability and flexibility.
+
+Here we will create for you a very simple SpiralDataset object to represent our spiral data. Read the following code snippet and try to understand the involved functions and the class structure.
 """
 
 # %%
-def batch_generator(X, y, batch_size, shuffle=True):
-    if shuffle:
-        # Shuffle the data at each epoch
-        indices = np.random.permutation(len(X))
-    else:
-        # Process the data in the order as it is
-        indices = np.arange(len(X))
-    for i in range(0, len(X), batch_size):
-        yield X[indices[i : i + batch_size]], y[indices[i : i + batch_size]]
+class SpiralDataset(torch.utils.data.Dataset):
+    def __init__(self, x, y):
+        """
+        This method (:= `constructor`) is automatically called when the class instance is created, i.e. `dataset = SpiralDataset(x, y)`
+        Note that this initializes the dataset, and to access its data, we should use indexing:
+        ```
+        dataset = SpiralDataset(x, y)
+        data_item = dataset[0]  # Access the first item in the dataset
+        ``` 
+        . The logic of which data item to retrieve, how to process it, etc. is implemented in the __getitem__ method.
+        """
+        self.x = x
+        self.y = y
+
+    def __len__(self):
+        """
+        This method stores the number of samples in the dataset, so running `len(dataset)` will return the number of samples.
+        """
+        return len(self.x)
+
+    def __getitem__(self, idx):
+        """
+        This method retrieves a single data item from the dataset. It controls the indexing behaviour: `dataset[0]` will contain the first data item, and so on.
+        Note that we don't need to worry about e.g. the batch dimension as the standard PyTorch DataLoader class will do that for us! 
+        """
+        x_tensor = torch.tensor(self.x[idx], dtype=torch.float32)
+        y_tensor = torch.tensor(self.y[idx], dtype=torch.float32)
+        res = {
+            "x": x_tensor,
+            "y": y_tensor,
+        }
+        return res
+
+train_dataset = SpiralDataset(X_train, y_train)
+
+# %% [markdown]
+"""
+Note that in general, when writing a new Dataset, one mostly needs to implement 3 methods of the class: `__init__`, `__len__` and `__getitem__`. The first method initializes the object, the second method returns the length/number of samples in the dataset and the third one implements the logic to retrieve one sample of the dataset.
+While the example above is very simple, this can get extremely complex and many design choices in your dataset can have big effects. For example, for very large datasets, one might want to load each sample in the `__getitem__` method instead of loading the entire dataset into memory at once in the `__init__` method, at the cost of some performance.
 
 
-def run_epoch(model, optimizer, X_train, y_train, batch_size, loss_fn, device):
-    n_samples = len(X_train)
+Having our dataset ready, we are almost ready to start with a simple baseline model. But before that, we will explicitly write code for the training loop (required by vanilla PyTorch). Try to identify and understand each step! Comments in the code will help you identify the different steps involved.
+
+"""
+# %%
+def run_epoch(model, optimizer, train_dataloader, loss_fn, device):
+    n_samples = len(train_dataloader.dataset) # Get the number of samples from the dataset associated to the dataloader.
     total_loss = 0
 
     # Set the model to training mode, essential when using certain layers
     model.train()
-    for X_b, y_b in batch_generator(X_train, y_train, batch_size):
-        # Convert the data to PyTorch tensors
-        X_b = torch.tensor(X_b, dtype=torch.float32, device=device)
-        y_b = torch.tensor(y_b, dtype=torch.float32, device=device)
+
+    # Iterate over the training dataloader, which yields batches of data
+    for batch in train_dataloader:
+        # Move the data to the computing device (CPU/GPU)
+        X_b = batch["x"].to(device)
+        y_b = batch["y"].to(device)
 
         # Reset the optimizer state
         optimizer.zero_grad()
@@ -438,9 +479,7 @@ def run_epoch(model, optimizer, X_train, y_train, batch_size, loss_fn, device):
 
 # %% [markdown]
 """
-Before continuing, you should know that PyTorch is object-oriented (OOP) and follows specific class structures. If you are not too familiar with Python or OOP, it may be a bit tricky to understand the structure at first, and what executes when. Don't despair! Getting the grasp on it is easier than it seems. Here we will focus on getting the architecture of the model right, so most of the boilerplate work will be already lifted.
-
-So, let's now write the simple baseline model, consisting of one hidden layer with 12 neurons (or perceptrons). You will see that this baseline model performs pretty poorly. Read the following code snippets and try to understand the involved functions:
+So, let's now finally write the simple baseline model, consisting of one hidden layer with 12 neurons (or perceptrons). You will see that this baseline model performs pretty poorly. Read the following code snippets and try to understand the involved functions:
 """
 
 # %%
@@ -498,11 +537,14 @@ loss_fn = nn.MSELoss(reduction="mean")  # MSELoss - Mean Squared Error Loss
 batch_size = 10
 num_epochs = 1500
 
+# Create the Dataloader associated to the training set. 
+train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+
 
 for epoch in (pbar := tqdm(range(num_epochs), total=num_epochs, desc="Training")):
     # Run an epoch over the training set
     curr_loss = run_epoch(
-        bad_model, optimizer, X_train, y_train, batch_size, loss_fn, device
+        bad_model, optimizer, train_dataloader, loss_fn, device
     )
 
     # Update the progress bar to display the training loss
@@ -515,13 +557,12 @@ Now that we've trained the model, let's evaluate its performance on the testing 
 
 
 # %%
-def predict(model, X, y, batch_size, device):
+def predict(model, test_dataloader, device):
     predictions = np.empty((0,))
     model.eval() # set the model to evaluation mode
     with torch.inference_mode(): # this "context manager" is used to disable gradient computation (among others), which is not needed during inference and offers improved performance
-        for X_b, y_b in batch_generator(X, y, batch_size, shuffle=False):
-            X_b = torch.tensor(X_b, dtype=torch.float32, device=device)
-            y_b = torch.tensor(y_b, dtype=torch.float32, device=device)
+        for batch in test_dataloader:
+            X_b = batch["x"].to(device)
             y_pred = model(X_b).squeeze().detach().cpu().numpy()
             # Note: the last chain of methods (in order) do: remove a unit dimension (.squeeze()),
             # detach the tensor from the computational graph (.detach()),
@@ -535,7 +576,9 @@ def accuracy(y_pred, y_gt):
     return np.sum(y_pred == y_gt) / len(y_gt)
 
 
-bad_predictions = predict(bad_model, X_test, y_test, batch_size, device)
+test_dataset = SpiralDataset(X_test, y_test)
+test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+bad_predictions = predict(bad_model, test_dataloader, device)
 bad_accuracy = accuracy(bad_predictions, y_test)
 
 plot_points(
@@ -583,18 +626,24 @@ loss_fn = (
 assert optimizer is not None, "Please set the optimizer!"
 assert loss_fn is not None, "Please set the loss!"
 
+batch_size = 10
+num_epochs = 1500
+
+train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+
 good_model.train()
 
 for epoch in (pbar := tqdm(range(num_epochs), total=num_epochs, desc="Training")):
     # Run an epoch over the training set
     curr_loss = run_epoch(
-        good_model, optimizer, X_train, y_train, batch_size, loss_fn, device
+        good_model, optimizer, train_dataloader, loss_fn, device
     )
 
     # Update the progress bar to display the training loss
     pbar.set_postfix({"training loss": curr_loss})
 
-good_predictions = predict(good_model, X_test, y_test, batch_size, device)
+good_predictions = predict(good_model, test_dataloader, device)
 good_accuracy = accuracy(good_predictions, y_test)
 
 plot_points(
@@ -608,7 +657,7 @@ plot_points(
 class GoodModel(nn.Module):
     def __init__(self):
         super().__init__()
-        self.seq = nn.Sequential(
+        self.mlp = nn.Sequential(
             # SOLUTION
             nn.Linear(in_features=2, out_features=64, bias=True),
             nn.ReLU(),
@@ -621,7 +670,7 @@ class GoodModel(nn.Module):
         )
 
     def forward(self, x):
-        return self.seq(x)
+        return self.mlp(x)
 
 
 # Instantiate the model
@@ -632,22 +681,23 @@ good_model.to(device)
 optimizer = torch.optim.AdamW(good_model.parameters(), lr=0.001)
 loss_fn = nn.BCELoss(reduction="mean")  # Binary Cross Entropy Loss
 
-
 batch_size = 10
 num_epochs = 1500
 
+train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
 good_model.train()
 for epoch in (pbar := tqdm(range(num_epochs), total=num_epochs, desc="Training")):
     # Run an epoch over the training set
     curr_loss = run_epoch(
-        good_model, optimizer, X_train, y_train, batch_size, loss_fn, device
+        good_model, optimizer, train_dataloader, loss_fn, device
     )
 
     # Update the progress bar to display the training loss
     pbar.set_postfix({"training loss": curr_loss})
 
-good_predictions = predict(good_model, X_test, y_test, batch_size, device)
+good_predictions = predict(good_model, test_dataloader, device)
 good_accuracy = accuracy(good_predictions, y_test)
 
 plot_points(
@@ -682,9 +732,13 @@ def plot_classifiers(classifier_1, classifier_2):
         np.linspace(*domain_x1, num_samples), np.linspace(*domain_x2, num_samples)
     )
     xs = np.array([domain[0].flatten(), domain[1].flatten()]).T
+    ys = np.zeros(xs.shape[0])
 
-    values_1 = predict(classifier_1, xs, np.zeros(xs.shape[0]), batch_size, device)
-    values_2 = predict(classifier_2, xs, np.zeros(xs.shape[0]), batch_size, device)
+    dummy_ds = SpiralDataset(xs, ys)
+    dummy_dl = torch.utils.data.DataLoader(dummy_ds, batch_size=10, shuffle=False)
+
+    values_1 = predict(classifier_1, dummy_dl, device)
+    values_2 = predict(classifier_2, dummy_dl, device)
 
     plt.subplot(1, 2, 1)
     plt.title("Bad Model")
@@ -715,9 +769,13 @@ def plot_classifiers(classifier_1, classifier_2):
         np.linspace(*domain_x1, num_samples), np.linspace(*domain_x2, num_samples)
     )
     xs = np.array([domain[0].flatten(), domain[1].flatten()]).T
+    ys = np.zeros(xs.shape[0])
 
-    values_1 = predict(classifier_1, xs, np.zeros(xs.shape[0]), batch_size, device)
-    values_2 = predict(classifier_2, xs, np.zeros(xs.shape[0]), batch_size, device)
+    dummy_ds = SpiralDataset(xs, ys)
+    dummy_dl = torch.utils.data.DataLoader(dummy_ds, batch_size=10, shuffle=False)
+
+    values_1 = predict(classifier_1, dummy_dl, device)
+    values_2 = predict(classifier_2, dummy_dl, device)
 
     plt.subplot(1, 2, 1)
     plt.title("Bad Model")
@@ -787,7 +845,7 @@ test_ds = MNIST(
 
 # %% [markdown]
 """
-The dataset is already split into training and test data, but we will further split the training data into training and validation, and show a few samples in the next cell.
+The dataset is already split into training and test data, but we will further split the training data into training and validation, and show a few samples in the next cell. Note that we can do all of this because MNIST is an instance of a torch Dataset class!
 """
 
 # %%
@@ -1056,13 +1114,13 @@ def live_training_plot(
 ):
     clear_output(wait=True)
     plt.close()
-    fig, axs = plt.subplots(1, 2, figsize=figsize)
+    _, axs = plt.subplots(1, 2, figsize=figsize)
 
-    axs[0].plot(train_loss, label="Training loss")
-    axs[0].plot(val_loss, label="Validation loss")
+    axs[0].plot(train_loss, "o-", label="Training loss")
+    axs[0].plot(val_loss, "o-", label="Validation loss")
 
-    axs[1].plot(train_acc, label="Training accuracy")
-    axs[1].plot(val_acc, label="Validation accuracy")
+    axs[1].plot(train_acc, "o-",label="Training accuracy")
+    axs[1].plot(val_acc, "o-", label="Validation accuracy")
 
     axs[0].set_xlabel("Epochs")
     axs[0].set_ylabel("Loss")
@@ -1078,6 +1136,13 @@ def live_training_plot(
 
     axs[0].legend(loc="upper right")
     axs[1].legend(loc="lower right")
+    
+    # Despine
+    axs[0].spines["top"].set_visible(False)
+    axs[0].spines["right"].set_visible(False)
+
+    axs[1].spines["top"].set_visible(False)
+    axs[1].spines["right"].set_visible(False)
 
     plt.show()
     return
