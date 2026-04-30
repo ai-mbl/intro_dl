@@ -527,12 +527,23 @@ class PytorchPerceptron(nn.Module):
 
         self.layer1 = nn.Linear(
             in_features=2, out_features=2, bias=True
-        )  # TODO Explanation
+        )  # These are the two perceptrons in the first layer. The in_features should be 2, as we have 2 inputs,
+        # and the out_features should be 2, as we want to have 2 perceptrons in the first layer.
+        # The bias is set to True, which means that each perceptron will have a bias term.
         self.layer2 = nn.Linear(
             in_features=2, out_features=1, bias=True
-        )  # TODO Explanation
-        self.activation_1 = nn.Tanh()  # TODO EXplanation
-        self.activation_2 = nn.Sigmoid()  # TODO Explanation
+        )  # This is the perceptron in the second layer. The in_features should be 2, as we have 2 outputs from
+        # the first layer, and the out_features should be 1, as we want to have 1 perceptron in the second layer.
+
+        self.activation_1 = (
+            nn.Tanh()
+        )  # This is our first non-linearity, which is applied after the first layer.
+        # You can change it to other non-linearities (e.g. ReLU, Sigmoid, etc.) and see how it affects the training
+        # process and the final performance of the model.
+        self.activation_2 = (
+            nn.Sigmoid()
+        )  # This is our second non-linearity, which is applied after the second
+        # layer. We use a sigmoid here because we want the output to be between 0 and 1, as we are doing binary classification.
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """This method can be called to perform a forward pass of the model.
@@ -544,6 +555,7 @@ class PytorchPerceptron(nn.Module):
 
         Returns:
             torch.Tensor: results of applying the model to the input data, Shape will be (B, 1)
+            Here we are applying the layers sequentially, making sure to apply the non-linearities in between.
         """
         x = self.layer1(x)
         x = self.activation_1(x)
