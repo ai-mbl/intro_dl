@@ -638,18 +638,19 @@ print("Predictions for XOR inputs:")
 for inp, out in zip(test_input.cpu().numpy(), test_output.cpu().numpy()):
     print(f"Input: {inp}, Output: {out[0]:.4f}")
 
+# %% [markdown]
 """
 <div class="alert alert-block alert-warning">
     <b>Question:</b>
-    Notice that the activation functions are not perfect step functions, and thus the output 
+    Notice that the activation functions are not perfect step functions, and thus the output
     of the model is not exactly 0 or 1, but a value between 0 and 1. Why is that?
 </div>
 
 <div class="alert alert-block alert-success">
 <h2> Checkpoint 3</h2>
-You have now learned some of the fundamentals of Pytorch and trained a simple neural network to perform an 
-XOR classification task. We will now move on to a more complex dataset and a more complex model, which will 
-be more similar to the ones used in practice. 
+You have now learned some of the fundamentals of Pytorch and trained a simple neural network to perform an
+XOR classification task. We will now move on to a more complex dataset and a more complex model, which will
+be more similar to the ones used in practice.
 </div>
 """
 
