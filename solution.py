@@ -418,6 +418,7 @@ class DatasetSimple(torch.utils.data.Dataset):
 xs, ys = generate_xor_data()
 xs = np.array(xs)
 ys = np.array(ys)
+np.random.seed(42)
 idx = np.random.randint(0, 4, size=1000)
 xor_dataset = DatasetSimple(xs[idx], ys[idx])
 print(f"Number of samples in the dataset: {len(xor_dataset)}")
@@ -548,6 +549,7 @@ else:
     print("GPU not available. Will use CPU.")
     device = torch.device("cpu")
 
+torch.manual_seed(42)
 xor_model_torch = PytorchPerceptron()
 # The .to() method will move the model to the appropiate device (e.g. the GPU if available)
 xor_model_torch.to(device)
