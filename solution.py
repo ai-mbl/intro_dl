@@ -38,6 +38,8 @@ The original notebook was created by Nils Eckstein, Julia Buhmann, and Jan Funke
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+import torch.nn as nn
+from tqdm.auto import tqdm
 
 plt.rcParams["figure.figsize"] = (5, 5)  # this line sets the default size of plots
 
@@ -355,39 +357,11 @@ This will certainly get out of hand once we have more complex networks with seve
 But more importantly, the reason why we want to use neural networks to approximate a function is that (in general) we do not know exactly what the function is. 
 We only have data points that describe the function implicitly.
 
-In this task, we will let a neural network learn the Xor function from data instead of painstakingly setting the 
-weights by hand. For this we first need to make a dataset which can be used for training.
+In this task, we will let a neural network learn the XOR function from data instead of painstakingly setting the
+weights by hand. We reuse `generate_xor_data()` from Task 2 and sample from its 4 unique inputs with replacement
+to build a training dataset of 1000 samples.
 
-#### Data
-
-We will create an Xor dataset for training and testing. The dataset will consist of pairs of binary inputs and 
-their corresponding XOR outputs, as described in the previous task.
-"""
-
-# %%
-import torch.nn as nn
-from tqdm.auto import tqdm
-
-
-def generate_xor_data(n_samples):
-    """Generate XOR data for pairs of binary inputs:
-    f(0,0) = 0
-    f(0,1) = 1
-    f(1,0) = 1
-    f(1,1) = 0
-    """
-
-    x = np.random.randint(0, 2, size=(n_samples, 2))  # generate random binary inputs
-    y = np.logical_xor(x[:, 0], x[:, 1]).astype(int)  # compute the XOR of the inputs
-
-    return x, y
-
-
-# %% [markdown]
-"""
-As you can see in the snippet above, we generate the data using NumPy. However, we will use PyTorch to train the network. 
-
-Before continuing, you should know that PyTorch is object-oriented (OOP) and follows specific class structures. 
+Before continuing, you should know that PyTorch is object-oriented (OOP) and follows specific class structures.
 If you are not too familiar with Python or OOP, it may be a bit tricky to understand the structure at first, and what executes when.
 Don't despair! Getting the grasp on it is easier than it seems. Here we will focus on getting the basics and
  the architecture of the model right, so most of the boilerplate work will be already lifted.
@@ -441,7 +415,11 @@ class DatasetSimple(torch.utils.data.Dataset):
         return res
 
 
-xor_dataset = DatasetSimple(*generate_xor_data(1000))
+xs, ys = generate_xor_data()
+xs = np.array(xs)
+ys = np.array(ys)
+idx = np.random.randint(0, 4, size=1000)
+xor_dataset = DatasetSimple(xs[idx], ys[idx])
 print(f"Number of samples in the dataset: {len(xor_dataset)}")
 print(f"Example of a sample in the dataset: {xor_dataset[0]}")
 
