@@ -1210,12 +1210,12 @@ Create a CNN using `torch` module with the following specifications:
 
 The fact that we do not add any activation function in the output is because certain loss functions in PyTorch (e.g. [`nn.CrossEntropyLoss`](https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html)) expect the logits given by the network and already apply the activation function in a more efficient manner when computing the loss, offering speedup and more numerical stability compared to explicitly adding it. Therefore, one should not to add an activation function in the output layer when using these loss functions during training (always double check what is the expected input for the loss function you want to use!).
 
-Each layer above has a corresponding `torch` implementation (e.g., a convolutional layer is implemented by [`nn.Conv2D`](https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html), and the linear layer by [`nn.Linear`](https://pytorch.org/docs/stable/generated/torch.nn.Linear.html), which you have used before in Task 3). Please find the other necessary modules by browsing the [torch.nn documentation](https://pytorch.org/docs/stable/nn.html)! Flattening can be achieved by using the [`nn.Flatten` module](https://pytorch.org/docs/stable/generated/torch.nn.Flatten.html) with its default parameters.
+Each layer above has a corresponding `torch` implementation (e.g., a convolutional layer is implemented by [`nn.Conv2d`](https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html), and the linear layer by [`nn.Linear`](https://pytorch.org/docs/stable/generated/torch.nn.Linear.html), which you have used before in Task 3). Please find the other necessary modules by browsing the [torch.nn documentation](https://pytorch.org/docs/stable/nn.html)! Flattening can be achieved by using the [`nn.Flatten` module](https://pytorch.org/docs/stable/generated/torch.nn.Flatten.html) with its default parameters.
 
 
 <div class="alert alert-block alert-warning">
     <b>Question:</b>
-    PyTorch requires explicitly giving the number of input features/channels to each Linear/Conv2D layer. Therefore, you need to know the number of input features/channels for those layers.
+    PyTorch requires explicitly giving the number of input features/channels to each Linear/Conv2d layer. Therefore, you need to know the number of input features/channels for those layers.
     What is the number of input features/channels for each layer in the CNN described above? Take particular care with the number of input features in the first fully connected layer (after flattening). You can assume the convolutional layers will preserve the input spatial size (thanks to the <code>padding=1</code>). Downsampling operations do not change the number of channels/feature maps, they simply reduce the spatial size by the pooling factor.
 </div>
 """
