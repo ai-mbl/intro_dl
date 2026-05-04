@@ -583,35 +583,20 @@ Now that we have trained our model, we can look at the evolution of the weights 
 
 
 # %%
-def plot_weights(weights_n_biases, n_batch_steps=1000):
-    all_weights = []
-    y_labels = []
+def plot_weights(weights_n_biases):
+    fig, axes = plt.subplots(len(weights_n_biases), 1, figsize=(12, 10), sharex=True)
 
-    for name, values in weights_n_biases.items():
-        arr = np.stack(values)  # (steps, num_params)
+    for ax, (name, values) in zip(axes, weights_n_biases.items()):
+        arr = np.stack(values)  # (steps, n_params)
+        for i in range(arr.shape[1]):
+            ax.plot(arr[:, i], label=f"{name}[{i}]")
+        ax.set_ylabel(name, fontsize=8)
+        ax.legend(fontsize=7, loc="upper right")
+        ax.axhline(0, color="gray", linewidth=0.5, linestyle="--")
 
-        n_params = arr.shape[1]
-
-        for i in range(n_params):
-            y_labels.append(f"{name}[{i}]")
-
-        all_weights.append(arr)
-
-    W = np.concatenate(all_weights, axis=1)[:n_batch_steps].T  # (params, steps)
-
-    plt.figure(figsize=(12, 8))
-
-    plt.imshow(W, aspect="auto", interpolation="none", cmap="coolwarm")
-    plt.colorbar(label="weight value")
-
-    plt.xlabel("batch step")
-    plt.ylabel("parameters")
-
-    # show fewer labels if too many
-    step = max(1, len(y_labels) // 20)
-    plt.yticks(ticks=np.arange(0, len(y_labels), step), labels=y_labels[::step])
-
-    plt.title("Weight evolution")
+    axes[-1].set_xlabel("batch step")
+    fig.suptitle("Weight & bias evolution during XOR training", fontsize=12)
+    plt.tight_layout()
     plt.show()
 
 
