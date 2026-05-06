@@ -34,11 +34,14 @@ The original notebook was created by Nils Eckstein, Julia Buhmann, and Jan Funke
 """
 
 # %%
+
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+import torch.nn as nn
+from tqdm.auto import tqdm
 
-plt.rcParams["figure.figsize"] = (5, 5) # this line sets the default size of plots
+plt.rcParams["figure.figsize"] = (5, 5)  # this line sets the default size of plots
 
 # %% [markdown]
 """
@@ -53,10 +56,10 @@ One important distinction is that the inputs to PyTorch functions must be `torch
 """
 
 # %%
-x_np = np.random.randn(256,512) # Generate a random numpy array of shape (256,512)
-print(type(x_np)) # Should be 'numpy.ndarray'
+x_np = np.random.randn(256, 512)  # Generate a random numpy array of shape (256,512)
+print(type(x_np))  # Should be 'numpy.ndarray'
 x_torch = torch.tensor(x_np)
-print(type(x_torch)) # Should be 'torch.Tensor'
+print(type(x_torch))  # Should be 'torch.Tensor'
 
 # %% [markdown]
 """
@@ -75,7 +78,7 @@ Furthermore, many operations on PyTorch tensors share a similar syntax to operat
 # %%
 x_np_sum = np.sum(x_np)
 x_torch_sum = torch.sum(x_torch)
-print(x_np_sum, x_torch_sum) # should be equal
+print(x_np_sum, x_torch_sum)  # should be equal
 
 
 # %% [markdown]
@@ -120,8 +123,8 @@ Test your perceptron function on 2D inputs (i.e., `n=2`) and plot the result. Ch
 def non_linearity(a):
     """Implement your non-linear function here, which should return either 0 or 1. Returning False or True is also OK.
 
-       HINT: Remember that torch operations usually yield torch tensors.
-             In this case we want the output not to be a tensor, but the _item_s they contain ;)
+    HINT: Remember that torch operations usually yield torch tensors.
+          In this case we want the output not to be a tensor, but the _item_s they contain ;)
     """
     # TASK: make the function return a non-linearity that maps the input to 0 or 1
     return
@@ -131,8 +134,8 @@ def non_linearity(a):
 # %% tags=["solution"]
 def non_linearity(a):
     """This non-linearity is called the step function.
-       NOTE: this function is not differentiable, and thus
-       it not cannot be used in gradient descent.
+    NOTE: this function is not differentiable, and thus
+    it not cannot be used in gradient descent.
     """
     return (a > 0).item()
 
@@ -153,26 +156,32 @@ def perceptron(x, w, b, f):
 # %%
 def plot_perceptron(w, b, f):
     """This function will evaluate the perceptron on a grid of arbitrary points
-       (equispaced across 0-1) and plot the result in each point, which will reveal
-       the decision boundary of the perceptron.
+    (equispaced across 0-1) and plot the result in each point, which will reveal
+    the decision boundary of the perceptron.
     """
-    
-    num_samples = 100 # number of samples in each dimension
-    domain_x1 = (0.0, 1.0) # domain of the plot (x-axis)
-    domain_x2 = (0.0, 1.0) # domain of the plot (y-axis)
+
+    num_samples = 100  # number of samples in each dimension
+    domain_x1 = (0.0, 1.0)  # domain of the plot (x-axis)
+    domain_x2 = (0.0, 1.0)  # domain of the plot (y-axis)
 
     domain = np.meshgrid(
         np.linspace(*domain_x1, num_samples), np.linspace(*domain_x2, num_samples)
-    ) # create a grid of equispaced points in the domain
+    )  # create a grid of equispaced points in the domain
 
-    xs = np.array([domain[0].flatten(), domain[1].flatten()]).T # format the points as a list of 2D points to evaluate the perceptron on
-    xs = torch.tensor(xs) # convert the NumPy array to pytorch tensor
-    w = torch.tensor(w) # convert the weights to a pytorch tensor
-    b = torch.tensor(b) # convert the bias to a pytorch tensor 
+    xs = np.array(
+        [domain[0].flatten(), domain[1].flatten()]
+    ).T  # format the points as a list of 2D points to evaluate the perceptron on
+    xs = torch.tensor(xs)  # convert the NumPy array to pytorch tensor
+    w = torch.tensor(w)  # convert the weights to a pytorch tensor
+    b = torch.tensor(b)  # convert the bias to a pytorch tensor
 
-    values = np.array([perceptron(x, w, b, f) for x in xs]) # evaluate the perceptron on each point in the grid
+    values = np.array(
+        [perceptron(x, w, b, f) for x in xs]
+    )  # evaluate the perceptron on each point in the grid
 
-    plt.contourf(domain[0], domain[1], values.reshape(num_samples, num_samples)) # plot the result as filled contours
+    plt.contourf(
+        domain[0], domain[1], values.reshape(num_samples, num_samples)
+    )  # plot the result as filled contours
 
 
 # the following should show a linear classifier that is True (shown as green)
@@ -207,6 +216,7 @@ XOR is a fundamental logic gate that outputs `1` whenever there is an odd number
 | 1 | 1 |    0     |
 """
 
+
 # %%
 def generate_xor_data():
     """Generate XOR data for pairs of binary inputs:
@@ -219,18 +229,19 @@ def generate_xor_data():
     ys = [int(np.logical_xor(x[0], x[1])) for x in xs]
     return xs, ys
 
+
 def plot_xor_data():
-    """Plot the XOR data. Class 0 points are shown in red, class 1 points in green.
-    """
+    """Plot the XOR data. Class 0 points are shown in red, class 1 points in green."""
     xs, ys = generate_xor_data()
     for x, y in zip(xs, ys):
         plt.scatter(*x, color="blue" if y else "red")
-    
+
     plt.xticks([0, 1])
     plt.yticks([0, 1])
     plt.grid(True)
     plt.gca().set_frame_on(False)
     plt.show()
+
 
 plot_xor_data()
 
@@ -247,6 +258,7 @@ Design a two layer perceptron using your `perceptron` function above that implem
 A single layer in a multilayer perceptron can be described by the equation $y = f(x^\intercal w + b)$, where $f$ denotes a non-linear function, $b$ denotes the bias (a constant offset vector) and $w$ denotes a vector of weights. Since we are only interested in boolean outputs ($\{0,1\}$), a good choice for $f$ is the threshold function. Think about which kind of logical operations you can implement with a single perceptron, then see how you can combine them to create an XOR. It might help to write down the equation for a two layer perceptron network.
 """
 
+
 # %% tags=["task"]
 def xor(x):
     """
@@ -258,17 +270,17 @@ def xor(x):
     # as w2 and b2. Change their values below such that the whole network implements
     # the XOR function. You will also have to change the activation function f used
     # for the perceptrons (which currently is the identity).
-    
 
     # TASK: set the weights and biases of the perceptrons
-    w11 = torch.tensor([0.0, 0.0]) # weights of the first perceptron in the first layer
-    b11 = torch.tensor(0.0) # bias of the first perceptron in the first layer
-    w12 = torch.tensor([0.0, 0.0]) # weights of the second perceptron in the first layer
-    b12 = torch.tensor(0.0) # bias of the second perceptron in the first layer
-    w2 = torch.tensor([0.0, 0.0]) # weights of the perceptron in the last layer
-    b2 = torch.tensor(0.0) # bias of the perceptron in the last layer
+    w11 = torch.tensor([0.0, 0.0])  # weights of the first perceptron in the first layer
+    b11 = torch.tensor(0.0)  # bias of the first perceptron in the first layer
+    w12 = torch.tensor(
+        [0.0, 0.0]
+    )  # weights of the second perceptron in the first layer
+    b12 = torch.tensor(0.0)  # bias of the second perceptron in the first layer
+    w2 = torch.tensor([0.0, 0.0])  # weights of the perceptron in the last layer
+    b2 = torch.tensor(0.0)  # bias of the perceptron in the last layer
     # END OF TASK
-
 
     # convert x to a torch tensor for the perceptron function
     x_tensor = torch.tensor(x)
@@ -285,14 +297,18 @@ def xor(x):
 # %% tags=["solution"]
 def xor(x):
     # SOLUTION
-    w11 = torch.tensor([0.1, 0.1]) # weights of the first perceptron in the first layer
-    b11 = torch.tensor(-0.05) # bias of the first perceptron in the first layer
-    w12 = torch.tensor([0.1, 0.1]) # weights of the second perceptron in the first layer
-    b12 = torch.tensor(-0.15) # bias of the second perceptron in the first layer
-    w2 = torch.tensor([0.1, -0.1]) # weights of the perceptron in the last layer
-    b2 = torch.tensor(-0.05) # bias of the perceptron in the last layer
+    w11 = torch.tensor([0.1, 0.1])  # weights of the first perceptron in the first layer
+    b11 = torch.tensor(-0.05)  # bias of the first perceptron in the first layer
+    w12 = torch.tensor(
+        [0.1, 0.1]
+    )  # weights of the second perceptron in the first layer
+    b12 = torch.tensor(-0.15)  # bias of the second perceptron in the first layer
+    w2 = torch.tensor([0.1, -0.1])  # weights of the perceptron in the last layer
+    b2 = torch.tensor(-0.05)  # bias of the perceptron in the last layer
 
-    x_tensor = torch.tensor(x) # convert x to a torch tensor for the perceptron function
+    x_tensor = torch.tensor(
+        x
+    )  # convert x to a torch tensor for the perceptron function
     # output of the two perceptrons in the first layer
     h1 = perceptron(x_tensor, w=w11, b=b11, f=non_linearity)
     h2 = perceptron(x_tensor, w=w12, b=b12, f=non_linearity)
@@ -314,7 +330,6 @@ def test_xor():
 
 
 test_xor()
-
 # %% [markdown]
 """
 <div class="alert alert-block alert-success">
@@ -326,29 +341,331 @@ There are many ways to implement an XOR in a two-layer perceptron. We will revie
 If you arrive here early, think about how to generalize the XOR function to an arbitrary number of inputs. For more than two inputs, the XOR returns True if the number of 1s in the inputs is odd, and False otherwise.
 </div>
 """
+
 # %% [markdown]
 """
-## Part 2: "Deep" Neural Networks
+## Part 3: Neural Networks
+
+<div class="alert alert-block alert-info">
+    <h2>Task 3</h2>
+
+Use PyTorch to Train a Simple Deep Neural Network
+</div>
+
+The previous task demonstrated that chosing the weights of a neural network by hand can be quite painful even for simple functions. 
+This will certainly get out of hand once we have more complex networks with several layers and many neurons per layer. 
+But more importantly, the reason why we want to use neural networks to approximate a function is that (in general) we do not know exactly what the function is. 
+We only have data points that describe the function implicitly.
+
+In this task, we will let a neural network learn the XOR function from data instead of painstakingly setting the
+weights by hand. We reuse `generate_xor_data()` from Task 2 and sample from its 4 unique inputs with replacement
+to build a training dataset of 1000 samples.
+
+Before continuing, you should know that PyTorch is object-oriented (OOP) and follows specific class structures.
+If you are not too familiar with Python or OOP, it may be a bit tricky to understand the structure at first, and what executes when.
+Don't despair! Getting the grasp on it is easier than it seems. Here we will focus on getting the basics and
+ the architecture of the model right, so most of the boilerplate work will be already lifted.
+
+First, it is common to work with PyTorch datasets when training models. 
+PyTorch datasets are utility classes that are used to manage training/validation data in a way that is compatible 
+with PyTorch's data loading and processing pipelines.
+They provide a convenient way to access and manipulate the data, and they integrate seamlessly with PyTorch's 
+DataLoader class. DataLoader instances are used to access the Dataset samples in batches during training time. 
+While Datasets and DataLoaders are related (in fact, a DataLoader needs a Dataset to exist), datasets and 
+dataloaders are not the same thing! There's many advantages to using Dataset/DataLoaders when training models, 
+including speed, scalability and flexibility.
+
+Here we will create DatasetSimple object for you to represent our Xor data. Read the following code snippet 
+and try to understand the involved functions and the class structure.
+"""
+
+
+# %%
+class DatasetSimple(torch.utils.data.Dataset):
+    def __init__(self, x, y):
+        """
+        This method (:= `constructor`) is automatically called when the class instance is created, i.e. `dataset = DatasetSimple(x, y)`
+        Note that this initializes the dataset, and to access its data, we should use indexing:
+        ```
+        dataset = DatasetSimple(x, y)
+        data_item = dataset[0]  # Access the first item in the dataset
+        ```
+        . The logic of which data item to retrieve, how to process it, etc. is implemented in the __getitem__ method.
+        """
+        self.x = x
+        self.y = y
+
+    def __len__(self):
+        """
+        This method stores the number of samples in the dataset, so running `len(dataset)` will return the number of samples.
+        """
+        return len(self.x)
+
+    def __getitem__(self, idx):
+        """
+        This method retrieves a single data item from the dataset. It controls the indexing behaviour: `dataset[0]` will contain the first data item, and so on.
+        Note that we don't need to worry about e.g. the batch dimension as the standard PyTorch DataLoader class will do that for us!
+        """
+        x_tensor = torch.tensor(self.x[idx], dtype=torch.float32)
+        y_tensor = torch.tensor(self.y[idx], dtype=torch.float32)
+        res = {
+            "x": x_tensor,
+            "y": y_tensor,
+        }
+        return res
+
+
+xs, ys = generate_xor_data()
+xs = np.array(xs)
+ys = np.array(ys)
+np.random.seed(42)
+idx = np.random.randint(0, 4, size=1000)
+xor_dataset = DatasetSimple(xs[idx], ys[idx])
+print(f"Number of samples in the dataset: {len(xor_dataset)}")
+print(f"Example of a sample in the dataset: {xor_dataset[0]}")
+
+# %% [markdown]
+"""
+Note that in general, when writing a new Dataset, one mostly needs to implement 3 methods of the class:
+ `__init__`, `__len__` and `__getitem__`. The first method initializes the object, the second method returns the 
+ length/number of samples in the dataset and the third one implements the logic to retrieve one sample of the 
+ dataset.
+While the example above is very simple, this can get extremely complex and many design choices in your dataset 
+can have big effects. For example, for very large datasets, one might want to load each sample in the `__getitem__` 
+method instead of loading the entire dataset into memory at once in the `__init__` method, at the cost of some 
+performance.
+
+
+Having our dataset ready, we are almost ready to start training our Xor model. But before that, we 
+will explicitly write code for the training loop (required by vanilla PyTorch). Try to identify and understand 
+each step! Comments in the code will help you identify the different steps involved.
+"""
+
+
+# %%
+def run_epoch(
+    model, optimizer, train_dataloader, loss_fn, device, weights_n_biases=None
+):
+    n_samples = len(
+        train_dataloader.dataset
+    )  # Get the number of samples from the dataset associated to the dataloader.
+    total_loss = 0
+
+    # Set the model to training mode, essential when using certain layers
+    model.train()
+
+    # Iterate over the training dataloader, which yields batches of data
+    for batch in train_dataloader:
+        # Move the data to the computing device (CPU/GPU)
+        X_b = batch["x"].to(device)
+        y_b = batch["y"].to(device)
+
+        # Reset the optimizer state
+        optimizer.zero_grad()
+
+        # Forward pass: pass the data through the model and retrieve the prediction
+        y_pred = model(X_b).squeeze()
+        # Note: the .squeeze() method above removes dimensions of size 1, which is useful in this case as we are predicting a single value.
+        # Before squeezing, the shape would be (B, 1). After squeezing, it is (B,), which is the shape of our target values y_b.
+        # The inverse of .squeeze() is .unsqueeze(), which adds dimensions of size 1. This is useful when e.g. you want to add a batch dimension to a single sample, or a channel dimension in a single-channel image.
+
+        # Compute the loss function with the prediction and the ground truth
+        loss = loss_fn(y_pred, y_b)
+        # Note: even if a single number is returned, it is still a tensor with an associated computational graph (--> more memory used).
+        # Be extremely careful when using the loss tensor in other calculations (e.g. for monitoring issues), as it can lead to memory leaks and other errors.
+        # For those, you should always use the .item() method to convert to a native Python number (see the last comment of the function).
+
+        # Backward pass: compute the gradient of the loss w.r.t. the parameters
+        loss.backward()
+
+        # Update the model parameters
+        optimizer.step()
+        if (
+            weights_n_biases is not None
+        ):  # Optionally we can stored the weights and biases after a step of optimization,
+            # which can be useful for monitoring and debugging purposes.
+            for name, param in model.state_dict().items():
+                weights_n_biases[name].append(param.detach().cpu().flatten().numpy())
+
+        # Accumulate the loss (for monitoring purposes)
+        total_loss += loss.item()  # the .item() converts the single-number Tensor to a Python floating point number, avoiding retaining the computational graph in the loss tensor
+
+    if weights_n_biases is not None:
+        return total_loss / n_samples, weights_n_biases
+
+    return total_loss / n_samples
+
+
+# 2 perceptrons in the first layer, 1 perceptron in the second layer
+class PytorchPerceptron(nn.Module):
+    def __init__(self):
+        """This method (:= `constructor`) is automatically called when the class instance is created, i.e. `model = BaselineModel()`
+        Note that this initializes the model architecture, but does not yet apply it to any data. This is done in the `forward` method.
+        """
+        super(PytorchPerceptron, self).__init__()
+
+        self.layer1 = nn.Linear(
+            in_features=2, out_features=2, bias=True
+        )  # These are the two perceptrons in the first layer. The in_features should be 2, as we have 2 inputs,
+        # and the out_features should be 2, as we want to have 2 perceptrons in the first layer.
+        # The bias is set to True, which means that each perceptron will have a bias term.
+        self.layer2 = nn.Linear(
+            in_features=2, out_features=1, bias=True
+        )  # This is the perceptron in the second layer. The in_features should be 2, as we have 2 outputs from
+        # the first layer, and the out_features should be 1, as we want to have 1 perceptron in the second layer.
+
+        self.activation_1 = (
+            nn.Tanh()
+        )  # This is our first non-linearity, which is applied after the first layer.
+        # You can change it to other non-linearities (e.g. ReLU, Sigmoid, etc.) and see how it affects the training
+        # process and the final performance of the model.
+        self.activation_2 = (
+            nn.Sigmoid()
+        )  # This is our second non-linearity, which is applied after the second
+        # layer. We use a sigmoid here because we want the output to be between 0 and 1, as we are doing binary classification.
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """This method can be called to perform a forward pass of the model.
+           It is automatically called when the class instance is called as a function, i.e. `model(x)`, which is highly recommended (so, in general, don't use model.forward(x) but model(x)).
+           In this example we have one module, but you can have multiple modules and combine them here.
+
+        Args:
+            x (torch.Tensor): The input data, which should have the shape (B, 2) in this case, where B is the batch size
+
+        Returns:
+            torch.Tensor: results of applying the model to the input data, Shape will be (B, 1)
+            Here we are applying the layers sequentially, making sure to apply the non-linearities in between.
+        """
+        x = self.layer1(x)
+        x = self.activation_1(x)
+        x = self.layer2(x)
+        x = self.activation_2(x)
+        return x
+
+
+if torch.cuda.is_available():
+    device = torch.device("cuda")
+else:
+    print("GPU not available. Will use CPU.")
+    device = torch.device("cpu")
+
+torch.manual_seed(42)
+xor_model_torch = PytorchPerceptron()
+# The .to() method will move the model to the appropiate device (e.g. the GPU if available)
+xor_model_torch.to(device)
+optimizer = torch.optim.SGD(
+    xor_model_torch.parameters(), lr=1
+)  # SGD - Stochastic Gradient Descent
+loss_fn = nn.BCELoss()  # BCELoss - Binary Cross Entropy Loss
+
+batch_size = 20
+num_epochs = 200
+
+# Create the Dataloader associated to the training set.
+train_dataloader = torch.utils.data.DataLoader(
+    xor_dataset, batch_size=batch_size, shuffle=True
+)
+
+weights_n_biases = {param_tensor: [] for param_tensor in xor_model_torch.state_dict()}
+
+for epoch in (pbar := tqdm(range(num_epochs), total=num_epochs, desc="Training")):
+    # Run an epoch over the training set
+    curr_loss, weights_n_biases = run_epoch(
+        xor_model_torch, optimizer, train_dataloader, loss_fn, device, weights_n_biases
+    )
+
+    # Update the progress bar to display the training loss
+    pbar.set_postfix({"training loss": curr_loss})
+# %% [markdown]
+"""
+Now that we have trained our model, we can look at the evolution of the weights and biases during training:
+"""
+
+
+# %%
+def plot_weights(weights_n_biases):
+    fig, axes = plt.subplots(len(weights_n_biases), 1, figsize=(12, 10), sharex=True)
+
+    for ax, (name, values) in zip(axes, weights_n_biases.items()):
+        arr = np.stack(values)  # (steps, n_params)
+        for i in range(arr.shape[1]):
+            ax.plot(arr[:, i], label=f"{name}[{i}]")
+        ax.set_ylabel(name, fontsize=8)
+        ax.legend(fontsize=7, loc="upper right")
+        ax.axhline(0, color="gray", linewidth=0.5, linestyle="--")
+
+    axes[-1].set_xlabel("batch step")
+    fig.suptitle("Weight & bias evolution during XOR training", fontsize=12)
+    plt.tight_layout()
+    plt.show()
+
+
+plot_weights(weights_n_biases)
+# %% [markdown]
+"""
+Notice how the weights and biases converge to values that implement the XOR function from random initial values 
+centering around 0. This is the magic of training neural networks with gradient descent! We start from random 
+values, and by iteratively updating the parameters in the direction that reduces the loss, we can find values 
+that implement the function we want to learn (in this case, XOR).
+
+Finally, we can evaluate the trained model on the XOR inputs and see how well it performs!
+"""
+# %%
+xor_model_torch.eval()  # Set the model to evaluation mode, which is important when using certain layers
+test_input = torch.tensor([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=torch.float32).to(
+    device
+)
+
+with torch.inference_mode():  # Context manager to disable gradient tracking for evaluation and others, which reduces memory usage and speeds up computations
+    test_output = xor_model_torch(test_input)
+
+print("Predictions for XOR inputs:")
+for inp, out in zip(test_input.cpu().numpy(), test_output.cpu().numpy()):
+    print(f"Input: {inp}, Output: {out[0]:.4f}")
+
+# %% [markdown]
+"""
+<div class="alert alert-block alert-warning">
+    <b>Question:</b>
+    Notice that the activation functions are not perfect step functions, and thus the output
+    of the model is not exactly 0 or 1, but a value between 0 and 1. Why is that?
+</div>
+
+<div class="alert alert-block alert-success">
+<h2> Checkpoint 3</h2>
+You have now learned some of the fundamentals of Pytorch and trained a simple neural network to perform an
+XOR classification task. We will now move on to a more complex dataset and a more complex model, which will
+be more similar to the ones used in practice.
+</div>
+"""
+
+# %% [markdown]
+"""
+## Part 4: "Deep" Neural Networks
 
 <div>
     <img src="attachments/neural_network.png" width=500/>
 </div>
 
 <div class="alert alert-block alert-info">
-    <h2>Task 3</h2>
+    <h2>Task 4</h2>
 
-Use PyTorch to Train a Simple Network
+Use PyTorch to Train a Simple Deep Neural Network
 </div>
 
-The previous task demonstrated that chosing the weights of a neural network by hand can be quite painful even for simple functions. This will certainly get out of hand once we have more complex networks with several layers and many neurons per layer. But more importantly, the reason why we want to use neural networks to approximate a function is that (in general) we do not know exactly what the function is. We only have data points that describe the function implicitly.
+As you may have noticed the XoR dataset is not quite suited for training a neural network, as it is very small 
+and simple. We will now create a slightly more complex dataset, and let you design a neural network to classify it.
 
-In this task, we will design, train, and evaluate a neural network that can classify points of two different classes on a 2D plane, i.e., the input to our network are the coordinates of points in a plane.
+In this task, we will design, train, and evaluate a neural network that can classify points of two 
+different classes on a 2D plane, i.e., the input to our network are the coordinates of points in a plane.
 
-For that, we will create a training and a testing dataset. We will use stochastic gradient descent to train a network on the training dataset and evaluate its performance on the testing dataset.
+For that, we will create a training and a testing dataset. We will again use stochastic gradient descent to train 
+a network on the training dataset and evaluate its performance on the testing dataset.
 
 #### Data
 
-We create both training and testing dataset from the following function (in practice, we would not know this function but have only the data available):
+We create both training and testing dataset from the following function 
+(in practice, we would not know this function but have only the data available):
 """
 
 
@@ -382,110 +699,22 @@ plot_points([X_train, X_test], [y_train, y_test], ["Training Data", "Testing Dat
 
 # %% [markdown]
 """
-As you can see in the snippet above, we generate the data using NumPy. However, we will use PyTorch to train the network. 
-
-Before continuing, you should know that PyTorch is object-oriented (OOP) and follows specific class structures. If you are not too familiar with Python or OOP, it may be a bit tricky to understand the structure at first, and what executes when. Don't despair! Getting the grasp on it is easier than it seems. Here we will focus on getting the basics and the architecture of the model right, so most of the boilerplate work will be already lifted.
-
-First, it is common to work with PyTorch datasets when training models. PyTorch datasets are utility classes that are used to manage training/validation data in a way that is compatible with PyTorch's data loading and processing pipelines.
-They provide a convenient way to access and manipulate the data, and they integrate seamlessly with PyTorch's DataLoader class. DataLoader instances are used to access the Dataset samples in batches during training time. While Datasets and DataLoaders are related (in fact, a DataLoader needs a Dataset to exist), datasets and dataloaders are not the same thing! There's many advantages to using Dataset/DataLoaders when training models, including speed, scalability and flexibility.
-
-Here we will create for you a very simple SpiralDataset object to represent our spiral data. Read the following code snippet and try to understand the involved functions and the class structure.
+We can re-use the `DatasetSimple` class we defined before to represent our training dataset, and create a 
+dataloader to iterate over it during training. Let's take a look at the output of the dataset and dataloader to 
+understand how they work before we start training the model.
 """
-
 # %%
-class SpiralDataset(torch.utils.data.Dataset):
-    def __init__(self, x, y):
-        """
-        This method (:= `constructor`) is automatically called when the class instance is created, i.e. `dataset = SpiralDataset(x, y)`
-        Note that this initializes the dataset, and to access its data, we should use indexing:
-        ```
-        dataset = SpiralDataset(x, y)
-        data_item = dataset[0]  # Access the first item in the dataset
-        ``` 
-        . The logic of which data item to retrieve, how to process it, etc. is implemented in the __getitem__ method.
-        """
-        self.x = x
-        self.y = y
-
-    def __len__(self):
-        """
-        This method stores the number of samples in the dataset, so running `len(dataset)` will return the number of samples.
-        """
-        return len(self.x)
-
-    def __getitem__(self, idx):
-        """
-        This method retrieves a single data item from the dataset. It controls the indexing behaviour: `dataset[0]` will contain the first data item, and so on.
-        Note that we don't need to worry about e.g. the batch dimension as the standard PyTorch DataLoader class will do that for us! 
-        """
-        x_tensor = torch.tensor(self.x[idx], dtype=torch.float32)
-        y_tensor = torch.tensor(self.y[idx], dtype=torch.float32)
-        res = {
-            "x": x_tensor,
-            "y": y_tensor,
-        }
-        return res
-
-train_dataset = SpiralDataset(X_train, y_train)
+train_dataset = DatasetSimple(X_train, y_train)
+print(f"Number of samples in the dataset: {len(train_dataset)}")
+print(f"Example of a sample in the dataset: {train_dataset[0]}")
 
 # %% [markdown]
 """
-Note that in general, when writing a new Dataset, one mostly needs to implement 3 methods of the class: `__init__`, `__len__` and `__getitem__`. The first method initializes the object, the second method returns the length/number of samples in the dataset and the third one implements the logic to retrieve one sample of the dataset.
-While the example above is very simple, this can get extremely complex and many design choices in your dataset can have big effects. For example, for very large datasets, one might want to load each sample in the `__getitem__` method instead of loading the entire dataset into memory at once in the `__init__` method, at the cost of some performance.
-
-
-Having our dataset ready, we are almost ready to start with a simple baseline model. But before that, we will explicitly write code for the training loop (required by vanilla PyTorch). Try to identify and understand each step! Comments in the code will help you identify the different steps involved.
-
-"""
-# %%
-def run_epoch(model, optimizer, train_dataloader, loss_fn, device):
-    n_samples = len(train_dataloader.dataset) # Get the number of samples from the dataset associated to the dataloader.
-    total_loss = 0
-
-    # Set the model to training mode, essential when using certain layers
-    model.train()
-
-    # Iterate over the training dataloader, which yields batches of data
-    for batch in train_dataloader:
-        # Move the data to the computing device (CPU/GPU)
-        X_b = batch["x"].to(device)
-        y_b = batch["y"].to(device)
-
-        # Reset the optimizer state
-        optimizer.zero_grad()
-
-        # Forward pass: pass the data through the model and retrieve the prediction
-        y_pred = model(X_b).squeeze()
-        # Note: the .squeeze() method above removes dimensions of size 1, which is useful in this case as we are predicting a single value.
-        # Before squeezing, the shape would be (B, 1). After squeezing, it is (B,), which is the shape of our target values y_b.
-        # The inverse of .squeeze() is .unsqueeze(), which adds dimensions of size 1. This is useful when e.g. you want to add a batch dimension to a single sample, or a channel dimension in a single-channel image.
-
-        # Compute the loss function with the prediction and the ground truth
-        loss = loss_fn(y_pred, y_b)
-        # Note: even if a single number is returned, it is still a tensor with an associated computational graph (--> more memory used).
-        # Be extremely careful when using the loss tensor in other calculations (e.g. for monitoring issues), as it can lead to memory leaks and other errors.
-        # For those, you should always use the .item() method to convert to a native Python number (see the last comment of the function).
-
-        # Backward pass: compute the gradient of the loss w.r.t. the parameters
-        loss.backward()
-
-        # Update the model parameters
-        optimizer.step()
-
-        # Accumulate the loss (for monitoring purposes)
-        total_loss += loss.item() # the .item() converts the single-number Tensor to a Python floating point number, avoiding retaining the computational graph in the loss tensor
-    return total_loss / n_samples
-
-
-# %% [markdown]
-"""
-So, let's now finally write the simple baseline model, consisting of one hidden layer with 12 neurons (or perceptrons). You will see that this baseline model performs pretty poorly. Read the following code snippets and try to understand the involved functions:
+Now let's write a baseline model to compare our own design to, consisting of one hidden layer with 12 neurons 
+(or perceptrons). You will see that this baseline model performs pretty poorly. 
 """
 
 # %%
-import torch.nn as nn
-from tqdm.auto import tqdm
-
 if torch.cuda.is_available():
     device = torch.device("cuda")
 else:
@@ -504,10 +733,14 @@ class BaselineModel(nn.Module):
         # The block then sequentially applies a linear transformation, a non-linear activation function, another linear transformation, and another non-linear activation function.
         # The output of the following block is a tensor of size (B, 1), where B is the batch size, which will be the predicted class of the input data.
         self.mlp = nn.Sequential(
-            nn.Linear(in_features=2, out_features=12, bias=True), # this layer receives a tensor of size (B, 2) and returns a tensor of size (B, 12)
-            nn.Tanh(), # Tanh is a non-linear activation function that squashes the output to the range [-1, 1]
-            nn.Linear(in_features=12, out_features=1), # this layer receives a tensor of size (B, 12) and returns a tensor of size (B, 1)
-            nn.Sigmoid(), # Sigmoid is a non-linear activation function that squashes the output to the range [0, 1], widely used for binary classification
+            nn.Linear(
+                in_features=2, out_features=12, bias=True
+            ),  # this layer receives a tensor of size (B, 2) and returns a tensor of size (B, 12)
+            nn.Tanh(),  # Tanh is a non-linear activation function that squashes the output to the range [-1, 1]
+            nn.Linear(
+                in_features=12, out_features=1
+            ),  # this layer receives a tensor of size (B, 12) and returns a tensor of size (B, 1)
+            nn.Sigmoid(),  # Sigmoid is a non-linear activation function that squashes the output to the range [0, 1], widely used for binary classification
         )
         # Note: the output of the block is a number between 0 and 1. In simplifying terms, you can think of it as "the probability of the input data belonging to class 1".
 
@@ -537,30 +770,32 @@ loss_fn = nn.MSELoss(reduction="mean")  # MSELoss - Mean Squared Error Loss
 batch_size = 10
 num_epochs = 1500
 
-# Create the Dataloader associated to the training set. 
-train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+# Create the Dataloader associated to the training set.
+train_dataloader = torch.utils.data.DataLoader(
+    train_dataset, batch_size=batch_size, shuffle=True
+)
 
 
 for epoch in (pbar := tqdm(range(num_epochs), total=num_epochs, desc="Training")):
     # Run an epoch over the training set
-    curr_loss = run_epoch(
-        bad_model, optimizer, train_dataloader, loss_fn, device
-    )
+    curr_loss = run_epoch(bad_model, optimizer, train_dataloader, loss_fn, device)
 
     # Update the progress bar to display the training loss
     pbar.set_postfix({"training loss": curr_loss})
 
 # %% [markdown]
 """
-Now that we've trained the model, let's evaluate its performance on the testing dataset. The following code snippet will retrieve the predictions from the model, and will then plot them along with the test data:
+Now that we've trained the model, let's evaluate its performance on the testing dataset. 
+The following code snippet will retrieve the predictions from the model, and will then 
+plot them along with the test data:
 """
 
 
 # %%
 def predict(model, test_dataloader, device):
     predictions = np.empty((0,))
-    model.eval() # set the model to evaluation mode
-    with torch.inference_mode(): # this "context manager" is used to disable gradient computation (among others), which is not needed during inference and offers improved performance
+    model.eval()  # set the model to evaluation mode
+    with torch.inference_mode():  # this "context manager" is used to disable gradient computation (among others), which is not needed during inference and offers improved performance
         for batch in test_dataloader:
             X_b = batch["x"].to(device)
             y_pred = model(X_b).squeeze().detach().cpu().numpy()
@@ -576,8 +811,10 @@ def accuracy(y_pred, y_gt):
     return np.sum(y_pred == y_gt) / len(y_gt)
 
 
-test_dataset = SpiralDataset(X_test, y_test)
-test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+test_dataset = DatasetSimple(X_test, y_test)
+test_dataloader = torch.utils.data.DataLoader(
+    test_dataset, batch_size=batch_size, shuffle=False
+)
 bad_predictions = predict(bad_model, test_dataloader, device)
 bad_accuracy = accuracy(bad_predictions, y_test)
 
@@ -590,12 +827,19 @@ plot_points(
 # %% [markdown]
 """
 <div class="alert alert-block alert-info">
-    <b>Task 3.1</b>: Improve the Baseline Model
+    <b>Task 4.1</b>: Improve the Baseline Model
 </div>
 
-Now, try to find a more advanced architecture that is able to solve the classification problem. You can vary width (number of neurons per layer) and depth (number of layers) of the network. You can also play around with [different activation functions](https://pytorch.org/docs/stable/nn.html#non-linear-activations-weighted-sum-nonlinearity), [loss functions](https://pytorch.org/docs/stable/nn.html#loss-functions), and [optimizers](https://pytorch.org/docs/stable/optim.html).
+Now, try to find a more advanced architecture that is able to solve the classification problem. 
+You can vary width (number of neurons per layer) and depth (number of layers) of the network. 
+You can also play around with [different activation functions](https://pytorch.org/docs/stable/nn.html#non-linear-activations-weighted-sum-nonlinearity), 
+[loss functions](https://pytorch.org/docs/stable/nn.html#loss-functions), 
+and [optimizers](https://pytorch.org/docs/stable/optim.html).
 
-Hint: some commonly used losses are `nn.BCELoss()` (binary crossentropy loss), `nn.MSELoss()` or `nn.L1Loss()` (one of them is particularly used for binary problems... :)). Some commonly used optimizers, apart from `torch.optim.SGD()`, are `torch.optim.AdamW()`, or `torch.optim.Adagrad()`.
+Hint: some commonly used losses are `nn.BCELoss()` (binary crossentropy loss), `nn.MSELoss()` or `nn.L1Loss()` 
+(one of them is particularly used for binary problems... :)). 
+Some commonly used optimizers, apart from `torch.optim.SGD()`, are `torch.optim.AdamW()`, 
+or `torch.optim.Adagrad()`.
 """
 
 
@@ -629,16 +873,18 @@ assert loss_fn is not None, "Please set the loss!"
 batch_size = 10
 num_epochs = 1500
 
-train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+train_dataloader = torch.utils.data.DataLoader(
+    train_dataset, batch_size=batch_size, shuffle=True
+)
+test_dataloader = torch.utils.data.DataLoader(
+    test_dataset, batch_size=batch_size, shuffle=False
+)
 
 good_model.train()
 
 for epoch in (pbar := tqdm(range(num_epochs), total=num_epochs, desc="Training")):
     # Run an epoch over the training set
-    curr_loss = run_epoch(
-        good_model, optimizer, train_dataloader, loss_fn, device
-    )
+    curr_loss = run_epoch(good_model, optimizer, train_dataloader, loss_fn, device)
 
     # Update the progress bar to display the training loss
     pbar.set_postfix({"training loss": curr_loss})
@@ -684,15 +930,17 @@ loss_fn = nn.BCELoss(reduction="mean")  # Binary Cross Entropy Loss
 batch_size = 10
 num_epochs = 1500
 
-train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+train_dataloader = torch.utils.data.DataLoader(
+    train_dataset, batch_size=batch_size, shuffle=True
+)
+test_dataloader = torch.utils.data.DataLoader(
+    test_dataset, batch_size=batch_size, shuffle=False
+)
 
 good_model.train()
 for epoch in (pbar := tqdm(range(num_epochs), total=num_epochs, desc="Training")):
     # Run an epoch over the training set
-    curr_loss = run_epoch(
-        good_model, optimizer, train_dataloader, loss_fn, device
-    )
+    curr_loss = run_epoch(good_model, optimizer, train_dataloader, loss_fn, device)
 
     # Update the progress bar to display the training loss
     pbar.set_postfix({"training loss": curr_loss})
@@ -709,16 +957,18 @@ plot_points(
 # %% [markdown]
 """
 <div class="alert alert-block alert-info">
-    <b>Task 3.2</b>: Visualize Your Model
+    <b>Task 4.2</b>: Visualize Your Model
 </div>
 
-The next cell visualizes the output of your model for all 2D inputs with coordinates between 0 and 1, similar to how we plotted the output of the perceptron in **Task 1**. Change the code below to show the domain -15 to 15 for both input dimensions and compare the outputs of the `bad_model` model with yours. See also how the model performs outside the intervals it was trained on by increasing the domain even further.
+The next cell visualizes the output of your model for all 2D inputs with coordinates between 0 and 1, 
+similar to how we plotted the output of the perceptron in **Task 1**. Change the code below to show the 
+domain -15 to 15 for both input dimensions and compare the outputs of the `bad_model` model with yours. 
+See also how the model performs outside the intervals it was trained on by increasing the domain even further.
 """
 
 
 # %% tags=["task"]
 def plot_classifiers(classifier_1, classifier_2):
-
     plt.subplots(1, 2, figsize=(10, 5))
 
     num_samples = 200
@@ -734,7 +984,7 @@ def plot_classifiers(classifier_1, classifier_2):
     xs = np.array([domain[0].flatten(), domain[1].flatten()]).T
     ys = np.zeros(xs.shape[0])
 
-    dummy_ds = SpiralDataset(xs, ys)
+    dummy_ds = DatasetSimple(xs, ys)
     dummy_dl = torch.utils.data.DataLoader(dummy_ds, batch_size=10, shuffle=False)
 
     values_1 = predict(classifier_1, dummy_dl, device)
@@ -756,7 +1006,6 @@ plot_classifiers(bad_model, good_model)
 
 # %% tags=["solution"]
 def plot_classifiers(classifier_1, classifier_2):
-
     plt.subplots(1, 2, figsize=(10, 5))
 
     num_samples = 200
@@ -771,7 +1020,7 @@ def plot_classifiers(classifier_1, classifier_2):
     xs = np.array([domain[0].flatten(), domain[1].flatten()]).T
     ys = np.zeros(xs.shape[0])
 
-    dummy_ds = SpiralDataset(xs, ys)
+    dummy_ds = DatasetSimple(xs, ys)
     dummy_dl = torch.utils.data.DataLoader(dummy_ds, batch_size=10, shuffle=False)
 
     values_1 = predict(classifier_1, dummy_dl, device)
@@ -799,15 +1048,19 @@ plot_classifiers(bad_model, good_model)
 
 <div class="alert alert-block alert-success">
 <h2> Checkpoint 3</h2>
-You have now been introduced to PyTorch and trained a simple neural network on a binary classification problem. You have also seen how to visualize the decision function of the model, and what happens if the model is applied to a domain it had not seen during training.
-Let us know in the exercise channel when you got here and what accuracy your model achieved! We will compare different solutions and discuss why some of them are better than others. We will also discuss the generalization behaviour of the classifier outside of the domain it was trained on.
+You have now trained your own simple neural network on a binary classification problem. 
+You have also seen how to visualize the decision function of the model, and what happens if the model is applied 
+to a domain it had not seen during training.
+Let us know in the exercise channel when you got here and what accuracy your model achieved! 
+We will compare different solutions and discuss why some of them are better than others. 
+We will also discuss the generalization behaviour of the classifier outside of the domain it was trained on.
 </div>
 """
 
 # %% [markdown]
 """
 <div class="alert alert-block alert-info">
-    <h2>Task 4</h2>
+    <h2>Task 5</h2>
 
 Classify Hand-Written Digits
 </div>
@@ -829,12 +1082,14 @@ In principle, we could just use convolutional layers to reduce the size of each 
 # %% [markdown]
 """
 ### Data
-The following snippet will download the MNIST dataset using the `torchvision` library. The `transforms=transforms.ToTensor()` parameter will ensure that the data format is appropriate for using it directly (adding a channel dimension, rescaling values between 0 and 1).
+The following snippet will download the MNIST dataset using the `torchvision` library. 
+The `transforms=transforms.ToTensor()` parameter will ensure that the data format is appropriate for using it 
+directly (adding a channel dimension, rescaling values between 0 and 1).
 """
 
 # %%
-from torchvision.datasets import MNIST
 from torchvision import transforms
+from torchvision.datasets import MNIST
 
 all_train_ds = MNIST(
     root="mnist_data", train=True, download=True, transform=transforms.ToTensor()
@@ -845,7 +1100,9 @@ test_ds = MNIST(
 
 # %% [markdown]
 """
-The dataset is already split into training and test data, but we will further split the training data into training and validation, and show a few samples in the next cell. Note that we can do all of this because MNIST is an instance of a torch Dataset class!
+The dataset is already split into training and test data, but we will further split the training 
+data into training and validation, and show a few samples in the next cell. Note that we can do all 
+of this because MNIST is an instance of a torch Dataset class!
 """
 
 # %%
@@ -888,9 +1145,13 @@ show_samples(test_ds, "Testing Data")
 
 # %% [markdown]
 """
-Let us make sure that the data is in the right format for using with `torch` modules. Convolutional layers expect an input shape of (B, C, H, W) (batch, channel, height and width). The batch dimension represents different samples in a batch. Therefore, each sample (image) in our dataset should be (1,28,28), as the data is single-channel. We will also check the labels to make sure they are integers between 0 and 9.
+Let us make sure that the data is in the right format for using with `torch` modules. Convolutional layers expect 
+an input shape of (B, C, H, W) (batch, channel, height and width). The batch dimension represents different 
+samples in a batch. Therefore, each sample (image) in our dataset should be (1,28,28), as the data is single-channel. 
+We will also check the labels to make sure they are integers between 0 and 9.
 
-While manually checking a couple of images is fine (and recommended), it is also good to automatize this process and check the data format in general (as long as the size allows so!).
+While manually checking a couple of images is fine (and recommended), it is also good to automatize this process 
+and check the data format in general (as long as the size allows so!).
 """
 # %%
 print("Training image shape:", train_ds[0][0].shape)
@@ -921,7 +1182,7 @@ print("\nData format is correct.")
 # %% [markdown]
 """
 <div class="alert alert-block alert-info">
-    <b>Task 4.1</b>: Implement a Convolutional Neural Network
+    <b>Task 5.1</b>: Implement a Convolutional Neural Network
 </div>
 
 Create a CNN using `torch` module with the following specifications:
@@ -934,12 +1195,12 @@ Create a CNN using `torch` module with the following specifications:
 
 The fact that we do not add any activation function in the output is because certain loss functions in PyTorch (e.g. [`nn.CrossEntropyLoss`](https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html)) expect the logits given by the network and already apply the activation function in a more efficient manner when computing the loss, offering speedup and more numerical stability compared to explicitly adding it. Therefore, one should not to add an activation function in the output layer when using these loss functions during training (always double check what is the expected input for the loss function you want to use!).
 
-Each layer above has a corresponding `torch` implementation (e.g., a convolutional layer is implemented by [`nn.Conv2D`](https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html), and the linear layer by [`nn.Linear`](https://pytorch.org/docs/stable/generated/torch.nn.Linear.html), which you have used before in Task 3). Please find the other necessary modules by browsing the [torch.nn documentation](https://pytorch.org/docs/stable/nn.html)! Flattening can be achieved by using the [`nn.Flatten` module](https://pytorch.org/docs/stable/generated/torch.nn.Flatten.html) with its default parameters.
+Each layer above has a corresponding `torch` implementation (e.g., a convolutional layer is implemented by [`nn.Conv2d`](https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html), and the linear layer by [`nn.Linear`](https://pytorch.org/docs/stable/generated/torch.nn.Linear.html), which you have used before in Task 3). Please find the other necessary modules by browsing the [torch.nn documentation](https://pytorch.org/docs/stable/nn.html)! Flattening can be achieved by using the [`nn.Flatten` module](https://pytorch.org/docs/stable/generated/torch.nn.Flatten.html) with its default parameters.
 
 
 <div class="alert alert-block alert-warning">
     <b>Question:</b>
-    PyTorch requires explicitly giving the number of input features/channels to each Linear/Conv2D layer. Therefore, you need to know the number of input features/channels for those layers.
+    PyTorch requires explicitly giving the number of input features/channels to each Linear/Conv2d layer. Therefore, you need to know the number of input features/channels for those layers.
     What is the number of input features/channels for each layer in the CNN described above? Take particular care with the number of input features in the first fully connected layer (after flattening). You can assume the convolutional layers will preserve the input spatial size (thanks to the <code>padding=1</code>). Downsampling operations do not change the number of channels/feature maps, they simply reduce the spatial size by the pooling factor.
 </div>
 """
@@ -1033,10 +1294,10 @@ del cnn_model  # clean up the temporary model
 The last line in the previous cell prints the number of trainable parameters of your model. This number should be 110634.
 
 <div class="alert alert-block alert-info">
-    <b>Task 4.2</b>: Train the Network
+    <b>Task 5.2</b>: Train the Network
 </div>
 
-As we did for Task 3, we will define some auxiliary functions for the training procedure which include, as before, the training loop (which we rewrite to add the computation of a metric to monitor during training), but also a validation procedure which will be used to evaluate the model on the validation dataset on every epoch.
+As we did for Task 4, we will define some auxiliary functions for the training procedure which include, as before, the training loop (which we rewrite to add the computation of a metric to monitor during training), but also a validation procedure which will be used to evaluate the model on the validation dataset on every epoch.
 
 Moreover, these procedures will use the very commonly used `DataLoader` class to deal with the data in batches. This PyTorch module allows an easy interface to iterate over the data in batches and comes with many benefits, such as the potential to load the data quicker with parallel processes.
 """
@@ -1119,7 +1380,7 @@ def live_training_plot(
     axs[0].plot(train_loss, "o-", label="Training loss")
     axs[0].plot(val_loss, "o-", label="Validation loss")
 
-    axs[1].plot(train_acc, "o-",label="Training accuracy")
+    axs[1].plot(train_acc, "o-", label="Training accuracy")
     axs[1].plot(val_acc, "o-", label="Validation accuracy")
 
     axs[0].set_xlabel("Epochs")
@@ -1136,7 +1397,7 @@ def live_training_plot(
 
     axs[0].legend(loc="upper right")
     axs[1].legend(loc="lower right")
-    
+
     # Despine
     axs[0].spines["top"].set_visible(False)
     axs[0].spines["right"].set_visible(False)
@@ -1273,9 +1534,11 @@ show_samples(test_ds, "Testing Data", predictions=y_test_predicted, num_samples=
 # %% [markdown]
 """
 <div class="alert alert-block alert-success">
-<h2> Checkpoint 4</h2>
+<h2> Checkpoint 5</h2>
 
 You reached the end, congratulations! In this last part, you have been introduced to CNNs as well as trained one on the widely known MNIST dataset for digit classification.
 After 10 epochs, your model should achieve a training, validation, and test accuracy of more than 95%. We will use this checkpoint to discuss why we use training, validation, and testing datasets in practice.
 </div>
 """
+
+# %%
