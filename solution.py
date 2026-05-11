@@ -485,7 +485,7 @@ def run_epoch(
         ):  # Optionally we can stored the weights and biases after a step of optimization,
             # which can be useful for monitoring and debugging purposes.
             for name, param in model.state_dict().items():
-                weights_n_biases[name].append(param.detach().cpu().flatten().numpy())
+                weights_n_biases[name].append(param.detach().cpu().flatten().numpy().copy())
 
         # Accumulate the loss (for monitoring purposes)
         total_loss += loss.item()  # the .item() converts the single-number Tensor to a Python floating point number, avoiding retaining the computational graph in the loss tensor
@@ -1047,9 +1047,9 @@ plot_classifiers(bad_model, good_model)
 </div>
 
 <div class="alert alert-block alert-success">
-<h2> Checkpoint 3</h2>
-You have now trained your own simple neural network on a binary classification problem. 
-You have also seen how to visualize the decision function of the model, and what happens if the model is applied 
+<h2> Checkpoint 4</h2>
+You have now trained your own simple neural network on a binary classification problem.
+You have also seen how to visualize the decision function of the model, and what happens if the model is applied
 to a domain it had not seen during training.
 Let us know in the exercise channel when you got here and what accuracy your model achieved! 
 We will compare different solutions and discuss why some of them are better than others. 
@@ -1515,7 +1515,7 @@ def predict(model, test_dataloader, device):
         ):
             X_b = X_b.to(device)
             y_b = y_b.long().to(device)
-            y_pred = model(X_b).argmax(axis=1).cpu().numpy()
+            y_pred = model(X_b).argmax(dim=1).cpu().numpy()
             predictions = np.concatenate((predictions, y_pred), axis=0)
     return predictions
 
